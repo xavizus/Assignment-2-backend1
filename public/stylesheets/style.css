@@ -1,0 +1,12 @@
+body,html,.container-fluid {
+  height: 100%;
+}
+
+.center {
+  margin: 0 auto;
+}
+
+img{
+  width:100%;
+  max-width:50px;
+}
