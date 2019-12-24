@@ -1,10 +1,12 @@
 let http = require('http');
+let https = require('https');
 let express = require('express');
 let path = require('path');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 let fetch = require("node-fetch");
 let mysql = require('mysql');
+let bodyParser = require('body-parser')
 
 // Load configurations needed to run.
 const config = require("./config");
@@ -38,6 +40,9 @@ app.use((request,response, next) => {
   next();
 });
 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -54,5 +59,21 @@ app.use('/api/v1', apiRouter);
 //login router
 app.use('/login', loginRouter);
 
+// Check if ssl will be used or not.
+if(config.useSSL) {
 
-let server = http.createServer(app).listen(config.webbPort);
+  //Create webbserver which listen at https traffic and uses a express app.
+  https.createServer(config.sslOptions,app).listen(config.httpsPort);
+
+  // simple http server, to redirect all http traffic to https.
+  http.createServer( (request,response) => {
+    response.writeHead(301,{'Location': `https://${request.headers.host + request.url}`});
+    response.end();
+  }).listen(config.webbPort);
+}
+// If ssl is not in use.
+else {
+  // create a http server that uses express middleware.
+  http.createServer(app).listen(config.webbPort);
+}
+

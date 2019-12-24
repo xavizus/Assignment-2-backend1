@@ -59,3 +59,15 @@ typings/
 
 # next.js build output
 .next
+
+# ignore common certificate filetypes
+*.pem
+*.crt
+*.key
+*.p12
+*.cert
+*.cer
+*.p7b
+*.p7c
+*.der
+*.pfx

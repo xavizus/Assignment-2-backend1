@@ -12,12 +12,12 @@ router.post('/',(request,response) => {
     let username = "Stephan";
     const token = jwt.sign({username},config.jwtkey, {
         algorithm: 'HS256',
-        expiresIn: config.jwtexpirySeconds
+        expiresIn: Number(config.jwtexpirySeconds)
     });
 
     console.log('token', token);
 
-    response.cookie('token', token, {maxAge: config.jwtexpirySeconds * 1000});
+    response.cookie('token', token, {maxAge: config.jwtexpirySeconds * 1000, httpOnly: true});
     response.end();
 });
 
