@@ -4,7 +4,6 @@ let express = require('express');
 let path = require('path');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
-let fetch = require("node-fetch");
 let mysql = require('mysql');
 let bodyParser = require('body-parser')
 
@@ -30,6 +29,7 @@ let indexRouter = require('./routes/index');
 let apiRouter = require('./routes/api');
 let loginRouter = require('./routes/login');
 
+// Express middleware
 let app = express();
 
 // config settings
@@ -40,15 +40,16 @@ app.use((request,response, next) => {
   next();
 });
 
-app.use(bodyParser.urlencoded({ extended: false }));
+// Body parser (Mostly for post-requests)
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 

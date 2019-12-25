@@ -18,7 +18,8 @@ const {
   JWTEXPIRYSECONDS,
   USE_SSL,
   SSL_KEY,
-  SSL_CERT
+  SSL_CERT,
+  APITOKEN
 } = process.env;
 
 // validate the required configuration information
@@ -41,9 +42,10 @@ module.exports = {
   webbPort: WEBB_PORT,
   httpsPort: HTTPS_PORT,
   jwtkey: JWTKEY,
-  jwtexpirySeconds: JWTEXPIRYSECONDS,
+  jwtexpirySeconds: Number(JWTEXPIRYSECONDS),
   useSSL: USE_SSL,
   sslOptions: sslOptions,
+  apiToken: APITOKEN,
   sql: {
     server: SQL_HOST,
     user: SQL_USERNAME,
