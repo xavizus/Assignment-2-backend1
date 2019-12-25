@@ -86,6 +86,28 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/javascript/createAccount.js":
+/*!*****************************************!*\
+  !*** ./src/javascript/createAccount.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("$().ready(() => {\r\n    \r\n});\n\n//# sourceURL=webpack:///./src/javascript/createAccount.js?");
+
+/***/ }),
+
+/***/ "./src/javascript/login.js":
+/*!*********************************!*\
+  !*** ./src/javascript/login.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("$().ready(() => {\r\n    let forms = $('.needs-validation');\r\n    console.log(forms);\r\n    $(forms).on('change',(event) => {\r\n        event.preventDefault();\r\n        event.stopPropagation();\r\n        if(event.target.checkValidity()) {\r\n           \r\n        }\r\n\r\n        $(event.target).addClass('was-validated');\r\n    });\r\n});\n\n//# sourceURL=webpack:///./src/javascript/login.js?");
+
+/***/ }),
+
 /***/ "./src/javascript/rateings.js":
 /*!************************************!*\
   !*** ./src/javascript/rateings.js ***!
@@ -98,13 +120,13 @@ eval("$().ready(() => {\r\n\r\n    let settings = {\r\n        currentValue: 0\r
 /***/ }),
 
 /***/ 0:
-/*!******************************************!*\
-  !*** multi ./src/javascript/rateings.js ***!
-  \******************************************/
+/*!******************************************************************************************************!*\
+  !*** multi ./src/javascript/rateings.js ./src/javascript/login.js ./src/javascript/createAccount.js ***!
+  \******************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("module.exports = __webpack_require__(/*! ./src/javascript/rateings.js */\"./src/javascript/rateings.js\");\n\n\n//# sourceURL=webpack:///multi_./src/javascript/rateings.js?");
+eval("__webpack_require__(/*! ./src/javascript/rateings.js */\"./src/javascript/rateings.js\");\n__webpack_require__(/*! ./src/javascript/login.js */\"./src/javascript/login.js\");\nmodule.exports = __webpack_require__(/*! ./src/javascript/createAccount.js */\"./src/javascript/createAccount.js\");\n\n\n//# sourceURL=webpack:///multi_./src/javascript/rateings.js_./src/javascript/login.js_./src/javascript/createAccount.js?");
 
 /***/ })
 

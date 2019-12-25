@@ -94,6 +94,26 @@ router.post('/requestToken', (request,response) => {
 
 // Token Refresh route.
 router.get('/tokenRefresh', (request, response, next) => {
-    
+    let token = request.cookies['token'];
+    jwt.verify(token, request.config.jwtkey, (err, decoded) => {
+        console.log(decoded);
+        // if we got an error
+        if (err) {
+            request.authenticated = false;
+            response.status(401).send({response: request.config.error, result: "Not allowed!"});
+            return;
+        }
+
+        const token = jwt.sign({username: decoded.username},config.jwtkey, {
+            algorithm: 'HS256',
+            // expires require data to be number and not string.
+            expiresIn: config.jwtexpirySeconds
+        });
+
+        // by this point, the client is authenticated.
+        request.authenticated = true;
+        // go to next step.
+        next();
+    });
 });
 module.exports = router;
