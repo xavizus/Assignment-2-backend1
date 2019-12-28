@@ -58,11 +58,23 @@ router.get('/', (request, response, next) => {
         response.status(401).send({response: request.statusCodes.error,result: "You are not authorized to use this api."})
     }
 });
+// Create a new account
 
+router.post('/createNewAccount', (request, response) => {
+    let {} = request.body;
+
+    let pool = request.db;
+
+    let responseObject = {
+        response: request.statusCode.ok
+    };
+});
+
+// Request new token
 router.post('/requestToken', (request,response) => {
 
     // Store expected data in variables from request body.
-    let {username,password, serverToken} = request.body;
+    let {username,email,password, serverToken} = request.body;
 
     // Get database connection
     let pool = request.db;
@@ -88,7 +100,7 @@ router.post('/requestToken', (request,response) => {
             return response.status(200).send(responseObject);
         });
     } else {
-        returnresponse.status(401).send({status: "Not allowed!"})
+        return response.status(401).send({status: "Not allowed!"})
     }
 });
 
@@ -116,4 +128,5 @@ router.get('/tokenRefresh', (request, response, next) => {
         next();
     });
 });
+
 module.exports = router;

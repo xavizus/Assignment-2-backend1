@@ -3,10 +3,11 @@ let router = express.Router();
 let fetch = require('node-fetch');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', async function(reqest, response, next) {
 
-  fetch('https://Gamin-dator.xavizus.com/api/v1').then(response => response.json()).then(result => console.log(result));
-  res.render('index', { title: 'Express' });
+  let resultObject = await fetch('https://Gamin-dator.xavizus.com/api/v1').then(response => response.json());
+  
+  response.render('index', {resultObject});
 });
 
 module.exports = router;

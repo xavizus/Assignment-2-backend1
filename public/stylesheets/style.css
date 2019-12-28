@@ -8,7 +8,6 @@ body,html,.container-fluid {
 
 img{
   width:100%;
-  max-width:50px;
 }
 .ratings > * .hover {
   color: yellow;
