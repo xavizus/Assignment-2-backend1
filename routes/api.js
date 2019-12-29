@@ -40,7 +40,12 @@ router.get('/', (request, response, next) => {
             response: request.statusCodes.ok
         };
         // query all restaurants
-        pool.query('SELECT restaurantsName,country,city,address,avatar FROM restaurants', (error, results, fields) => {
+        let sql = `select r.id, r.address, r.city, r.country, r.avatar, r.restaurantsName as restaurantName,GROUP_CONCAT(g.genreName SEPARATOR ', ') as genre
+        FROM restaurants as r
+        left join generRestaurant gr on r.id = gr.restaurants_id
+        Left JOIN genres g ON g.id = gr.gener_id
+        group by r.id`;
+        pool.query(sql, (error, results, fields) => {
             // if we got an error
             if (error) {
                 // set error code as response
@@ -58,16 +63,67 @@ router.get('/', (request, response, next) => {
         response.status(401).send({response: request.statusCodes.error,result: "You are not authorized to use this api."})
     }
 });
-// Create a new account
 
-router.post('/createNewAccount', (request, response) => {
-    let {} = request.body;
+router.get('/emailExist/:emailToCehck', (request,response) => {
+    let emailToCehck = request.params.emailToCehck;
 
     let pool = request.db;
 
     let responseObject = {
-        response: request.statusCode.ok
+        response: request.statusCodes.ok
     };
+
+    pool.query(`
+    SELECT 1
+    FROM users 
+    WHERE users.email = ?`,
+    [emailToCehck],
+    (error, results) => {
+        if(error) {
+            responseObject.response = request.statusCodes.error;
+            responseObject.result = error;
+            return response.status(200).send(responseObject);
+        }
+
+        if(results.length == 0) {
+            responseObject.result = {
+                exist: false
+            };
+        } else {
+            responseObject.result = {
+                exist: true
+            };
+        }
+
+        return response.status(200).send(responseObject);
+    });
+});
+
+// Create a new account
+router.post('/createNewAccount', (request, response) => {
+    let {email, password} = request.body;
+
+    let pool = request.db;
+
+    let responseObject = {
+        response: request.statusCodes.ok
+    };
+
+    // We don't trust anybody here!
+
+    //Check if it's an email.
+    let emailPattern = /\S*[^@]@[a-zA-Z0-9\.]+/i;
+
+    if(!email.match(emailPattern)) {
+        responseObject.response = request.statusCodes.error
+        responseObject.result = {
+            message: "You tampered with the POST-data didn't you? :D"
+        }
+
+        response.status(200).send(responseObject);
+        return;
+    }
+
 });
 
 // Request new token
@@ -87,7 +143,12 @@ router.post('/requestToken', (request,response) => {
     // if serverToken exists.
     if(serverToken) {
         // Sanitized sql-query
-        pool.query('SELECT apiToken_id FROM apiTokens where apiToken = ?',[serverToken] , (error, results, fields) => {
+        pool.query(`
+        SELECT apiToken_id 
+        FROM apiTokens 
+        WHERE apiToken = ?`,
+        [serverToken] , 
+        (error, results) => {
             if (error) {
                 // set error code as response
                 responseObject.response = request.statusCodes.error;
@@ -127,6 +188,11 @@ router.get('/tokenRefresh', (request, response, next) => {
         // go to next step.
         next();
     });
+});
+
+// Get top 10 restaurants
+router.get('/top10', (request,response) => {
+
 });
 
 module.exports = router;

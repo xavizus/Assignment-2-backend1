@@ -16,11 +16,11 @@ Ni får samarbeta med att sätta upp en startuppsättning med restauranger om ni
 # VG-krav
 
 - [ ] Enbart admin kan CRUD:a restauranger
-- [ ] Kontrollera indata mot skadlig kod
-- [ ] Aggregerade funktioner:
+- [x] Kontrollera indata mot skadlig kod
+- [x] Aggregerade funktioner:
 - På förstasidan ska ni visa:
     - [ ]  de tio bästa restaurangerna genom snittbetyg
-    - [ ]  genres av restauranger (pizzeria, vegetariskt osv)
+    - [x]  genres av restauranger (pizzeria, vegetariskt osv)
 
 # Gränsfallsfeatures
 

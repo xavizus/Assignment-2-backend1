@@ -8,6 +8,12 @@ router.get('/', (request,response) => {
     response.render('login');
 });
 
+// account route
+router.get('/newAccount', (request, response) => {
+
+    response.render('newAccount');
+})
+
 // root post route
 router.post('/',(request,response) => {
     // get config from request

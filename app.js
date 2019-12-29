@@ -27,7 +27,7 @@ let db = mysql.createPool ({
 // Routers
 let indexRouter = require('./routes/index');
 let apiRouter = require('./routes/api');
-let loginRouter = require('./routes/login');
+let accountRouter = require('./routes/account');
 
 // Express middleware
 let app = express();
@@ -57,8 +57,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 // Api router
 app.use('/api/v1', apiRouter);
-//login router
-app.use('/login', loginRouter);
+//account router
+app.use('/account', accountRouter);
 
 // Check if ssl will be used or not.
 if(config.useSSL) {

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <% include ./partials/header %>
+</head>
+
+<body>
+  <% include ./partials/login %>
+    <div class="container m-auto">
+        <div class="row">
+          <% include ./partials/navbar %>
+        </div>
+        <div class="row justify-content-center align-items-center align-items-stretch">
+            <div class="col-lg-5 col-sm-6 center">
+                <div class="card">
+                  <h1 class="text-center">New Account</h1>
+                  <div class="card-body">
+                    <form id="newAccount" class="needs-validation" action="/login" method="post" novalidate>
+                      <div class="form-group">
+                        <label for="email">Email address</label>
+                        <input type="email" class="form-control" id="newEmail" name="email" aria-describedby="emailHelp" required>
+                        <div class="invalid-feedback">
+                          Please provide a valid email.
+                        </div>
+                        <div class="valid-feedback">
+                          Looks good!
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" name="password" id="newPassword" minlength="6" required>
+                        <div class="invalid-feedback">
+                          Please provide a valid password.
+                        </div>
+                        <div class="valid-feedback">
+                          Looks good!
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="newPasswordRepeat">Repeat password</label>
+                        <input type="password" class="form-control" name="newPasswordRepeat" id="newPasswordRepeat" minlength="6" required>
+                        <div class="invalid-feedback">
+                          Password does not match.
+                        </div>
+                        <div class="valid-feedback">
+                          Looks good!
+                        </div>
+                      </div>
+                      <% if(locals.error) { %>
+                      <div class="form-group">
+                        <small><%= error %></small>
+                      </div>
+                      <% } %>
+                      <div class="form-group">
+                        <button type="submit" class="btn btn-primary" disabled>Sign up</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+        
+              </div>
+        </div>
+    </div>
+</body>
+
+</html>
