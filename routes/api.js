@@ -5,7 +5,7 @@ let router = express.Router();
 const jwt = require('jsonwebtoken');
 
 // Use following for checking token.
-let checkToken = (request,response,next) => {
+let checkToken = (request, response, next) => {
     // set default to misstrust client
     request.authenticated = false;
     // Get token from client
@@ -58,13 +58,15 @@ router.get('/', (request, response, next) => {
             // send responseObject to client.
             response.send(responseObject);
         });
-    }
-    else {
-        response.status(401).send({response: request.statusCodes.error,result: "You are not authorized to use this api."})
+    } else {
+        response.status(401).send({
+            response: request.statusCodes.error,
+            result: "You are not authorized to use this api."
+        })
     }
 });
 
-router.get('/emailExist/:emailToCehck', (request,response) => {
+router.get('/emailExist/:emailToCehck', (request, response) => {
     let emailToCehck = request.params.emailToCehck;
 
     let pool = request.db;
@@ -77,31 +79,34 @@ router.get('/emailExist/:emailToCehck', (request,response) => {
     SELECT 1
     FROM users 
     WHERE users.email = ?`,
-    [emailToCehck],
-    (error, results) => {
-        if(error) {
-            responseObject.response = request.statusCodes.error;
-            responseObject.result = error;
+        [emailToCehck],
+        (error, results) => {
+            if (error) {
+                responseObject.response = request.statusCodes.error;
+                responseObject.result = error;
+                return response.status(200).send(responseObject);
+            }
+
+            if (results.length == 0) {
+                responseObject.result = {
+                    exist: false
+                };
+            } else {
+                responseObject.result = {
+                    exist: true
+                };
+            }
+
             return response.status(200).send(responseObject);
-        }
-
-        if(results.length == 0) {
-            responseObject.result = {
-                exist: false
-            };
-        } else {
-            responseObject.result = {
-                exist: true
-            };
-        }
-
-        return response.status(200).send(responseObject);
-    });
+        });
 });
 
 // Create a new account
 router.post('/createNewAccount', (request, response) => {
-    let {email, password} = request.body;
+    let {
+        email,
+        password
+    } = request.body;
 
     let pool = request.db;
 
@@ -111,10 +116,10 @@ router.post('/createNewAccount', (request, response) => {
 
     // We don't trust anybody here!
 
-    //Check if it's an email.
+    // Check if it's an email. (minimal check)
     let emailPattern = /\S*[^@]@[a-zA-Z0-9\.]+/i;
 
-    if(!email.match(emailPattern)) {
+    if (!email.match(emailPattern)) {
         responseObject.response = request.statusCodes.error
         responseObject.result = {
             message: "You tampered with the POST-data didn't you? :D"
@@ -124,13 +129,34 @@ router.post('/createNewAccount', (request, response) => {
         return;
     }
 
+    // if NOT password length is equal or larger than password minimum length
+    // or NOT password matches passwordComplexity
+    if (!(password.length >= request.config.passwordMinimumLength ||
+            password.match(request.config.passwordComplexity)
+        )) {
+        responseObject.response = request.statusCodes.error
+        responseObject.result = {
+            message: "You tampered with the POST-data again didn't you? :D"
+        }
+
+        response.status(200).send(responseObject);
+        return;
+    }
+
+    
+
 });
 
 // Request new token
-router.post('/requestToken', (request,response) => {
+router.post('/requestToken', (request, response) => {
 
     // Store expected data in variables from request body.
-    let {username,email,password, serverToken} = request.body;
+    let {
+        username,
+        email,
+        password,
+        serverToken
+    } = request.body;
 
     // Get database connection
     let pool = request.db;
@@ -141,27 +167,29 @@ router.post('/requestToken', (request,response) => {
     };
 
     // if serverToken exists.
-    if(serverToken) {
+    if (serverToken) {
         // Sanitized sql-query
         pool.query(`
         SELECT apiToken_id 
         FROM apiTokens 
         WHERE apiToken = ?`,
-        [serverToken] , 
-        (error, results) => {
-            if (error) {
-                // set error code as response
-                responseObject.response = request.statusCodes.error;
-                // set result to error
-                results = error;
-            }
-            // set results to the responseObject
-            responseObject.result = results
-            // send responseObject to client.
-            return response.status(200).send(responseObject);
-        });
+            [serverToken],
+            (error, results) => {
+                if (error) {
+                    // set error code as response
+                    responseObject.response = request.statusCodes.error;
+                    // set result to error
+                    results = error;
+                }
+                // set results to the responseObject
+                responseObject.result = results
+                // send responseObject to client.
+                return response.status(200).send(responseObject);
+            });
     } else {
-        return response.status(401).send({status: "Not allowed!"})
+        return response.status(401).send({
+            status: "Not allowed!"
+        })
     }
 });
 
@@ -173,11 +201,16 @@ router.get('/tokenRefresh', (request, response, next) => {
         // if we got an error
         if (err) {
             request.authenticated = false;
-            response.status(401).send({response: request.config.error, result: "Not allowed!"});
+            response.status(401).send({
+                response: request.config.error,
+                result: "Not allowed!"
+            });
             return;
         }
 
-        const token = jwt.sign({username: decoded.username},config.jwtkey, {
+        const token = jwt.sign({
+            username: decoded.username
+        }, config.jwtkey, {
             algorithm: 'HS256',
             // expires require data to be number and not string.
             expiresIn: config.jwtexpirySeconds
@@ -190,8 +223,19 @@ router.get('/tokenRefresh', (request, response, next) => {
     });
 });
 
+// Send password requirements.
+router.get('/passwordRequirements', (request, response) => {
+    let responseObject = {
+        passwordComplexity: request.config.passwordComplexity.source,
+        passwordMinimumLength: request.config.passwordMinimumLength,
+        passwordComplexityMessage: request.config.passwordComplexityMessage
+    };
+
+    response.status(200).send(responseObject);
+});
+
 // Get top 10 restaurants
-router.get('/top10', (request,response) => {
+router.get('/top10', (request, response) => {
 
 });
 
