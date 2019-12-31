@@ -4,5 +4,17 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"LineCount.excludes": [
+			"**/.vscode/**",
+			"**/node_modules/**",
+			"**/.git/**",
+			"**/public/javascripts/main.js",
+			"**/.gitignore",
+			"package-lock.json",
+			"package.json",
+			"**/certs/**"
+		]
+
+	}
 }

@@ -78,7 +78,7 @@ module.exports = {
   httpsPort: HTTPS_PORT,
   jwtkey: JWTKEY,
   jwtexpirySeconds: Number(JWTEXPIRYSECONDS),
-  useSSL: USE_SSL.toLowerCase(),
+  useSSL: (USE_SSL.toLowerCase() == 'true'),
   sslOptions: sslOptions,
   serverAPIToken: APITOKEN,
   apiurl: APIURL,

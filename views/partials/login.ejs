@@ -8,6 +8,7 @@
                 </button>
             </div>
             <div class="modal-body">
+                <div class="messages"></div>
                 <form id="login" class="needs-validation" action="/login" method="post" novalidate>
                     <div class="form-group">
                         <label for="email">Email address</label>
@@ -37,7 +38,7 @@
                     <% } %>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Sign-in</button>
-                        <a class="btn btn-secondary float-right" href="/newAccount">Create an account</a>
+                        <a class="btn btn-secondary float-right" href="/account/newAccount">Create an account</a>
                     </div>
                 </form>
             </div>

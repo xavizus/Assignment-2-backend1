@@ -37,24 +37,6 @@ app.use((request, response, next) => {
   request.statusCodes = statusCodes;
   request.db = db;
   request.config = config;
-  request.signToken = function (data) {
-    const token = jwt.sign(data, config.jwtkey, {
-      algorithm: 'HS256',
-      // expires require data to be number and not string.
-      expiresIn: config.jwtexpirySeconds
-    });
-
-    return token;
-  }
-
-  request.verifyToken = function(token) {
-    jwt.verify(token, request.config.jwtkey, (err, decoded) =>{
-      if (err) {
-        return false;
-      }
-      return decoded;
-    })
-  }
   next();
 });
 

@@ -37,7 +37,7 @@ router.post('/newAccount',async (request, response) => {
             message: "You tampered with the POST-data didn't you? :D"
         }
 
-        response.status(200).send(responseObject);
+        response.status(request.statusCodes.http.BadRequest).send(responseObject);
         return;
     }
 
@@ -50,7 +50,7 @@ router.post('/newAccount',async (request, response) => {
             message: "You tampered with the POST-data again didn't you? :D"
         }
 
-        return response.status(200).send(responseObject);
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
     }
 
     // As said before, We don't trust anybody.
@@ -61,7 +61,7 @@ router.post('/newAccount',async (request, response) => {
             message: "You tampered with the POST-data yet once again didn't you? :D"
         }
 
-        return response.status(200).send(responseObject);
+        return response.status(400).send(responseObject);
     }
     let salt = await bcrypt.genSalt(10);
     let passwordHash = await bcrypt.hash(password,salt);
@@ -71,7 +71,7 @@ router.post('/newAccount',async (request, response) => {
     responseObject.response = request.statusCodes.ok;
     let data = {
         serverAPIToken: request.config.serverAPIToken,
-        email: email,
+        email: email.toLowerCase(),
         password: passwordHash
     }
     results = await fetch(`${request.config.apiurl}/createNewAccount`, {
@@ -83,20 +83,53 @@ router.post('/newAccount',async (request, response) => {
     }).then(response => response.json());
     if(results.response != request.statusCodes.ok) {
         responseObject.result = results.result;
-        return response.status(200).send(responseObject);
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
     }
     responseObject.response = request.statusCodes.ok;
-    return response.status(200).send(responseObject);
+    return response.status(request.statusCodes.http.Ok).send(responseObject);
 });
 
-// root post route
-router.post('/',(request,response) => {
+// login post route
+router.post('/login',async (request,response) => {
     // get config from request
     let config = request.config;
-    // Temporary data.
-    let username = "Stephan";
+    // store email and password in variables.
+    let {email, password} = request.body;
+    email = email.toLowerCase();
+    // responseObject
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+    // get passwordhash fpom api.
+    let responseData = await fetch(`${request.config.apiurl}/getPasswordHash/${request.config.serverAPIToken}/${email}`)
+    .then(response => response.json());
+    // store passwordhash
+    let passwordHash = responseData.result.password;
+    // check if the passwordhash is valid
+    if(!passwordHash) {
+        // Send badrequest, along with error response.
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+    }
+    // try to compare password to passwordhash.
+    let isValidPassword = await bcrypt.compare(password, passwordHash);
+
+    // if it fails to match
+    if(!isValidPassword) {
+        // Send bad request along with error response.
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+    }
+    
+    let userInfo = await fetch(`${request.config.apiurl}/getUserData/${request.config.serverAPIToken}/${email}`)
+    .then( response => response.json());
+    console.log(userInfo);
+
+    let tokenData = {
+        id: userInfo.result.id,
+        role: userInfo.result.role,
+        email: email
+    }
     // create a token with jwt
-    const token = jwt.sign({username},config.jwtkey, {
+    const token = jwt.sign(tokenData,config.jwtkey, {
         algorithm: 'HS256',
         // expires require data to be number and not string.
         expiresIn: config.jwtexpirySeconds
@@ -105,7 +138,9 @@ router.post('/',(request,response) => {
     // send cookie to client
     response.cookie('token', token, {maxAge: config.jwtexpirySeconds * 1000, httpOnly: true});
     // send response end (because response send isn't used atm).
-    response.end();
+
+    responseObject.response = request.statusCodes.ok;
+    response.send(responseObject);
 });
 
 module.exports = router;
