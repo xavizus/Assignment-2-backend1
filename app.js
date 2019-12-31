@@ -13,7 +13,7 @@ const config = require("./config");
 const statusCodes = require("./statusCodes");
 
 // Create DB connection pool
-let db = mysql.createPool ({
+let db = mysql.createPool({
   connectionLimit: 10, // Maximum connections
   acquireTimeout: 5000, // timeout for quetime 
   connectTimeout: 10000, // timeout for database connection.
@@ -33,23 +33,45 @@ let accountRouter = require('./routes/account');
 let app = express();
 
 // config settings
-app.use((request,response, next) => {
+app.use((request, response, next) => {
   request.statusCodes = statusCodes;
   request.db = db;
   request.config = config;
+  request.signToken = function (data) {
+    const token = jwt.sign(data, config.jwtkey, {
+      algorithm: 'HS256',
+      // expires require data to be number and not string.
+      expiresIn: config.jwtexpirySeconds
+    });
+
+    return token;
+  }
+
+  request.verifyToken = function(token) {
+    jwt.verify(token, request.config.jwtkey, (err, decoded) =>{
+      if (err) {
+        return false;
+      }
+      return decoded;
+    })
+  }
   next();
 });
 
 // Body parser (Mostly for post-requests)
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({
+  extended: true
+}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -61,14 +83,16 @@ app.use('/api/v1', apiRouter);
 app.use('/account', accountRouter);
 
 // Check if ssl will be used or not.
-if(config.useSSL) {
+if (config.useSSL) {
 
   //Create webbserver which listen at https traffic and uses a express app.
-  https.createServer(config.sslOptions,app).listen(config.httpsPort);
+  https.createServer(config.sslOptions, app).listen(config.httpsPort);
 
   // simple http server, to redirect all http traffic to https.
-  http.createServer( (request,response) => {
-    response.writeHead(301,{'Location': `https://${request.headers.host + request.url}`});
+  http.createServer((request, response) => {
+    response.writeHead(301, {
+      'Location': `https://${request.headers.host + request.url}`
+    });
     response.end();
   }).listen(config.webbPort);
 }
@@ -77,4 +101,3 @@ else {
   // create a http server that uses express middleware.
   http.createServer(app).listen(config.webbPort);
 }
-

@@ -105,46 +105,30 @@ router.get('/emailExist/:emailToCehck', (request, response) => {
 router.post('/createNewAccount', (request, response) => {
     let {
         email,
-        password
+        password,
+        serverAPIToken
     } = request.body;
-
     let pool = request.db;
-
     let responseObject = {
-        response: request.statusCodes.ok
-    };
-
-    // We don't trust anybody here!
-
-    // Check if it's an email. (minimal check)
-    let emailPattern = /\S*[^@]@[a-zA-Z0-9\.]+/i;
-
-    if (!email.match(emailPattern)) {
-        responseObject.response = request.statusCodes.error
-        responseObject.result = {
-            message: "You tampered with the POST-data didn't you? :D"
-        }
-
-        response.status(200).send(responseObject);
-        return;
+        response: request.statusCodes.error
+    }
+    if(serverAPIToken != request.config.serverAPIToken) {
+        responseObject.result = {message: "Wrong serverAPIToken"};
+        return response.status(200).send({responseObject});
     }
 
-    // if NOT password length is equal or larger than password minimum length
-    // or NOT password matches passwordComplexity
-    if (!(password.length >= request.config.passwordMinimumLength ||
-            password.match(request.config.passwordComplexity)
-        )) {
-        responseObject.response = request.statusCodes.error
-        responseObject.result = {
-            message: "You tampered with the POST-data again didn't you? :D"
+    pool.query(`
+    INSERT INTO users (email,password)
+    VALUES (?,?)
+    `, [email,password],
+    (error, results) => {
+        if(error) {
+            responseObject.result = error;
+            return response.status(200).send(responseObject);
         }
-
-        response.status(200).send(responseObject);
-        return;
-    }
-
-    
-
+        responseObject.response = request.statusCodes.ok;
+        return response.status(200).send(responseObject);
+    });
 });
 
 // Request new token
@@ -154,8 +138,7 @@ router.post('/requestToken', (request, response) => {
     let {
         username,
         email,
-        password,
-        serverToken
+        password
     } = request.body;
 
     // Get database connection
@@ -166,31 +149,6 @@ router.post('/requestToken', (request, response) => {
         response: request.statusCodes.ok
     };
 
-    // if serverToken exists.
-    if (serverToken) {
-        // Sanitized sql-query
-        pool.query(`
-        SELECT apiToken_id 
-        FROM apiTokens 
-        WHERE apiToken = ?`,
-            [serverToken],
-            (error, results) => {
-                if (error) {
-                    // set error code as response
-                    responseObject.response = request.statusCodes.error;
-                    // set result to error
-                    results = error;
-                }
-                // set results to the responseObject
-                responseObject.result = results
-                // send responseObject to client.
-                return response.status(200).send(responseObject);
-            });
-    } else {
-        return response.status(401).send({
-            status: "Not allowed!"
-        })
-    }
 });
 
 // Token Refresh route.

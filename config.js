@@ -1,6 +1,7 @@
 let dotenv = require("dotenv");
 let assert = require("assert");
 let fs = require('fs');
+let os = require('os');
 
 // read in the .env file
 dotenv.config();
@@ -21,7 +22,8 @@ const {
   SSL_CERT,
   APITOKEN,
   PASSWORD_COMPLEXITY,
-  PASSWORD_MINIMUM_LENGTH
+  PASSWORD_MINIMUM_LENGTH,
+  APIURL
 } = process.env;
 let sslOptions = {};
 
@@ -45,6 +47,7 @@ if (USE_SSL.toLowerCase() == "true") {
 assert(APITOKEN, "APITOKEN is required");
 assert(PASSWORD_COMPLEXITY, "PASSWORD_COMPLEXITY is required.");
 assert(PASSWORD_MINIMUM_LENGTH, "PASSWORD_MINIMUM_LENGTH is required");
+assert(APIURL, "APIURL is required!");
 
 // Prepare passwordComplex
 let passwordComplexity;
@@ -77,7 +80,8 @@ module.exports = {
   jwtexpirySeconds: Number(JWTEXPIRYSECONDS),
   useSSL: USE_SSL.toLowerCase(),
   sslOptions: sslOptions,
-  apiToken: APITOKEN,
+  serverAPIToken: APITOKEN,
+  apiurl: APIURL,
   sql: {
     server: SQL_HOST,
     user: SQL_USERNAME,

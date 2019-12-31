@@ -2,12 +2,12 @@
 // First get protocol, then get hostname, 
 // then check if there is a port. if it exists, add colon and portnumber
 // lastly, path to api.
-let apiURL = `${location.protocol}//${window.location.hostname}${location.port ? `:${location.port}` : ''}/api/v1`;
+let URL = `${location.protocol}//${window.location.hostname}${location.port ? `:${location.port}` : ''}`;
 
 $().ready(async () => {
 
     // Get password requirements and jsonfy it
-    let passwordRequirements = await fetch(`${apiURL}/passwordRequirements`).then(response => response.json());
+    let passwordRequirements = await fetch(`${URL}/api/v1/passwordRequirements`).then(response => response.json());
     // make the passwordComplexity string into a RexExp.
     passwordRequirements.passwordComplexity = new RegExp(passwordRequirements.passwordComplexity, 'g');
     
@@ -61,7 +61,7 @@ $().ready(async () => {
                     let value = event.target.value;
                     
                     // make api call to check if mail exists
-                    let response = await fetch(`${apiURL}/emailExist/${value}`).then(response => response.json());
+                    let response = await fetch(`${URL}/api/v1/emailExist/${value}`).then(response => response.json());
                     
                     // if it exisist
                     if (response.result.exist) {
@@ -155,12 +155,20 @@ function changeValidation(target, isValid) {
  *  Posts new account to api.
  */
 async function newAccount() {
-    let email = $('#newEmail').value;
-    let password = $('#newPassword').value;
+    let email = $('#newEmail').val();
+    let password = $('#newPassword').val();
 
-    let postData = {email: email, password: password};
-
-    let response = await postData(`${apiURL}/createNewAccount`,postData);
+    let data = {email: email, password: password};
+    let responseData = await postData(`${URL}/account/newAccount`,data);
+   
+    if(responseData.response != 'OK') {
+        let message = $('<div class="alert alert-danger m-1" role="alert"></div>').text("Error when creating account");
+        $('.messages').append(message);
+    }
+    else {
+        let message = $('<div class="alert alert-success m-1" role="alert"></div>').text("Your account has been sucessfully created!");
+        $('.messages').append(message);
+    }
 }
 
 /**
@@ -176,6 +184,7 @@ async function postLogin() {
     let data = await postData(`${apiURL}/requestToken`, dataObject);
 
     console.log(data);
+
 }
 
 /**
