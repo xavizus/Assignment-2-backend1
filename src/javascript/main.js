@@ -27,11 +27,12 @@ $().ready(async () => {
     $('.restaurants-cards').on('click', async (event) => {
         if (event.target.classList.contains('reviewButton')) {
             let id = event.target.dataset.id;
-            let reviews = await fetch(`${URL}/api/v1/getReviews/${id}`).then(response => response.json());
+            let data = await fetch(`${URL}/api/v1/getReviews/${id}`).then(response => response.json());
             $('#reviews').empty();
-            for (let review of reviews.result) {
+            $('#reviewTitle').empty();
+            $('#reviewTitle').text(data.result.restaurantName);
+            for (let review of data.result.reviews) {
                 let html = $('<div class="row"></div>');
-                console.log(review);
                 html.append($('<p></p>').text(review.text));
 
                 $('#reviews').append(html);

@@ -92,7 +92,7 @@ router.get('/getReviews/:id',(request,response) => {
     let responseObject = {
         response: request.statusCodes.error
     };
-
+    // make sure it's an number we are dealing with.
     if(!Number(id)) {
         return response.status(request.statusCodes.http.BadRequest).send(responseObject);
     }
@@ -100,39 +100,36 @@ router.get('/getReviews/:id',(request,response) => {
     let pool = request.db;
 
     pool.query(`
-    SELECT rv.id,rv.user_id, rv.text, rv.rating
+    SELECT rv.id,rv.user_id, rv.text, rv.rating, r.restaurantsName
     FROM reviews rv
+    LEFT JOIN restaurants r ON r.id = rv.restaurant_id
     WHERE rv.restaurant_id = ?;`,[id],(error,results) => {
         if(error) {
             responseObject.result = error;
             return response.status(request.statusCodes.http.BadRequest).send(responseObject);
         }
-
+        console.log(results);
         responseObject.response = request.statusCodes.ok
-        responseObject.result = results;
+        responseObject.result = {
+            reviews: results,
+            restaurantName: results[0].restaurantsName
+        }
         return response.status(request.statusCodes.http.Ok).send(responseObject);
     });
 
 });
 
 // Create a new account
-router.post('/createNewAccount', (request, response) => {
+router.post('/createNewAccount/:apiServerToken', checkApiToken, (request, response) => {
     let {
         email,
-        password,
-        serverAPIToken
+        password
     } = request.body;
+
     let pool = request.db;
+    
     let responseObject = {
         response: request.statusCodes.error
-    }
-    if (serverAPIToken != request.config.serverAPIToken) {
-        responseObject.result = {
-            message: "Wrong serverAPIToken"
-        };
-        return response.status(request.statusCodes.http.Ok).send({
-            responseObject
-        });
     }
 
     pool.query(`

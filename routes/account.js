@@ -70,11 +70,10 @@ router.post('/newAccount',async (request, response) => {
     // From this point, We can asume everything are correct.
     responseObject.response = request.statusCodes.ok;
     let data = {
-        serverAPIToken: request.config.serverAPIToken,
         email: email.toLowerCase(),
         password: passwordHash
     }
-    results = await fetch(`${request.config.apiurl}/createNewAccount`, {
+    results = await fetch(`${request.config.apiurl}/createNewAccount/${request.config.serverAPIToken}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
