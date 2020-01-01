@@ -10,8 +10,8 @@ Ni får samarbeta med att sätta upp en startuppsättning med restauranger om ni
 - [ ] Vilken användare som helst ska kunna CRUD:a restauranger med ett gränssnitt.
 - [ ] Användare ska kunna skriva recensioner om restaurangerna
 - [ ] Användare ska betygsätta restaurangerna i recensionen på en skala 1-5 (betyget är alltså required)
-- [ ] Användare måste logga in för att skriva recensioner. Välj mellan JWT eller Passport.
-- [ ] Applikationen ska publiceras på heroku eller något liknande.
+- [x] Användare måste logga in för att skriva recensioner. Välj mellan JWT eller Passport.
+- [x] Applikationen ska publiceras på heroku eller något liknande.
 
 # VG-krav
 
