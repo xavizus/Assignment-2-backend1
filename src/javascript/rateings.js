@@ -7,24 +7,29 @@ $().ready(() => {
     let wonderfullFunctions = {
         fill: (element) => {
             let index = $(".fa-star").index(element) + 1;
-            $(".fa-star").slice(0,index).addClass('hover');
+            $(".fa-star").slice(0, index).addClass('hover');
         },
         clear: () => {
             $(".fa-star").filter('.hover').removeClass('hover');
             $(".fa-star").filter('.checked').removeClass('checked');
         },
         reset: () => {
-           $('.fa-star').slice(0,settings.currentValue).addClass('checked');
+            $('.fa-star').slice(0, settings.currentValue).addClass('checked');
         }
     };
 
-    $(".fa-star").mouseenter((event)=> {
+    $('#reviewModal').on('hide.bs.modal', function () {
+        wonderfullFunctions.clear();
+        settings.currentValue = 0;
+    });
+
+    $(".fa-star").mouseenter((event) => {
         event.preventDefault();
         wonderfullFunctions.clear();
         wonderfullFunctions.fill(event.target);
     });
 
-    $(".fa-star").mouseleave((event)=> {
+    $(".fa-star").mouseleave((event) => {
         event.preventDefault();
         wonderfullFunctions.clear();
         wonderfullFunctions.reset();

@@ -1,4 +1,6 @@
-body,html,.container-fluid {
+body,
+html,
+.container-fluid {
   height: 100%;
 }
 
@@ -6,12 +8,14 @@ body,html,.container-fluid {
   margin: 0 auto;
 }
 
-img{
-  width:100%;
+img {
+  width: 100%;
 }
-.ratings > * .hover {
+
+.ratings>.hover {
   color: yellow;
 }
-.ratings > * .checked {
+
+.ratings>.checked {
   color: orange;
 }

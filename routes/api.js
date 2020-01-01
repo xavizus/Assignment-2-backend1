@@ -85,6 +85,36 @@ router.get('/emailExist/:emailToCehck', (request, response) => {
         });
 });
 
+// get reviews
+router.get('/getReviews/:id',(request,response) => {
+    let id = request.params.id;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+
+    if(!Number(id)) {
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+    }
+
+    let pool = request.db;
+
+    pool.query(`
+    SELECT rv.id,rv.user_id, rv.text, rv.rating
+    FROM reviews rv
+    WHERE rv.restaurant_id = ?;`,[id],(error,results) => {
+        if(error) {
+            responseObject.result = error;
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+        }
+
+        responseObject.response = request.statusCodes.ok
+        responseObject.result = results;
+        return response.status(request.statusCodes.http.Ok).send(responseObject);
+    });
+
+});
+
 // Create a new account
 router.post('/createNewAccount', (request, response) => {
     let {

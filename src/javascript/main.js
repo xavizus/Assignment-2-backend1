@@ -6,8 +6,8 @@ let URL = `${location.protocol}//${window.location.hostname}${location.port ? `:
 
 $().ready(async () => {
     let isTokenValid = await fetch(`${URL}/api/v1/verifyToken`).then(response => response.json());
-    
-    if(isTokenValid.response == 'OK') {
+
+    if (isTokenValid.response == 'OK') {
         toggleLoginLogoutButton();
     }
     // Get password requirements and jsonfy it
@@ -23,6 +23,23 @@ $().ready(async () => {
     $('#loginModal').on('hide.bs.modal', function () {
         $('.messages').empty();
     });
+
+    $('.restaurants-cards').on('click', async (event) => {
+        if (event.target.classList.contains('reviewButton')) {
+            let id = event.target.dataset.id;
+            let reviews = await fetch(`${URL}/api/v1/getReviews/${id}`).then(response => response.json());
+            $('#reviews').empty();
+            for (let review of reviews.result) {
+                let html = $('<div class="row"></div>');
+                console.log(review);
+                html.append($('<p></p>').text(review.text));
+
+                $('#reviews').append(html);
+            }
+        }
+
+    });
+
     // Get all forms that got the class needs-validation
     let forms = $('.needs-validation');
 
@@ -40,10 +57,10 @@ $().ready(async () => {
     });
 
     $('.logoutButton').on('click', (event) => {
-            console.log('Clicked');
-            toggleLoginLogoutButton();
-            fetch(`${URL}/api/v1/logout`);
-        });
+        console.log('Clicked');
+        toggleLoginLogoutButton();
+        fetch(`${URL}/api/v1/logout`);
+    });
 
     // Get element of id 
     let checkNewAccountForm = $('#newAccount');
@@ -224,11 +241,10 @@ async function postData(url, data) {
 function toggleLoginLogoutButton() {
     let loginButton = $('.loginButton');
     let logoutButton = $('.logoutButton');
-    if(loginButton.length) {
+    if (loginButton.length) {
         loginButton.parent().append(`<button class="btn btn-primary logoutButton">Logout</button>`);
         loginButton.remove();
-    } 
-    else if(logoutButton.length) {
+    } else if (logoutButton.length) {
         logoutButton.parent().append(`<button class="btn btn-primary loginButton" data-toggle="modal" data-target="#loginModal">Login</button>`);
         logoutButton.remove();
     }

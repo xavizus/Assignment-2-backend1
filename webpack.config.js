@@ -4,7 +4,7 @@ module.exports = {
     mode: 'development',
     entry: [
         './src/javascript/rateings.js',
-        './src/javascript/login.js'
+        './src/javascript/main.js'
     ],
     output: {
         filename: 'main.js',

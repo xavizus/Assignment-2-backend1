@@ -1,0 +1,41 @@
+<div class="modal" id="reviewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="postReview" class="needs-validation" method="post" novalidate>
+                    <div class="form-group">
+                        <label for="email">Rate</label>
+                        <div class="ratings">
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewText">Review</label>
+                        <input type="text" class="form-control" name="reviewText" minlength="6" required>
+                        <div class="invalid-feedback">
+                            Please provide a valid password.
+                        </div>
+                        <div class="valid-feedback">
+                            Looks good!
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Add review</button>
+                    </div>
+                </form>
+                <div id="reviews" class="container">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
