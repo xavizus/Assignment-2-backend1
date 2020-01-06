@@ -191,8 +191,12 @@ router.get('/verifyToken', async (request,response) => {
         responseObject.result = error.message;
         return response.status(request.statusCodes.http.Unauthorized).send(responseObject);
     }
-
     responseObject.response = request.statusCodes.ok;
+    if(decoded.role == 'admin') {
+        responseObject.result = {
+            isAdmin: true
+        };
+    }
     response.status(200).send(responseObject);
 });
 
@@ -297,6 +301,103 @@ router.get('/getUserData/:apiServerToken/:email',checkApiToken, (request, respon
                     id: results[0].id,
                     role: results[0].role
                 };
+            }
+            // send OK status and the responseObject
+            return response.status(request.statusCodes.http.Ok).send(responseObject);
+        });
+});
+
+router.get('/restaurantById/:id', (request,response) => {
+    let id = request.params.id;
+
+    // get database pool.
+    let pool = request.db;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    }
+
+    // find user email
+    pool.query(`
+    SELECT *
+    FROM restaurants r
+    WHERE r.id = ?`,
+        [id],
+        (error, results) => {
+            // if an error occured
+            if (error) {
+                // store error message
+                responseObject.result = error;
+                // send client error status and send responseobject
+                return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+            }
+            // if we didn't get any matches
+            if (results.length == 0) {
+                // respond with false password
+                responseObject.result = {
+                    found: false
+                }
+            } else {
+                // Change response to OK.
+                responseObject.response =  request.statusCodes.ok;
+
+                let data = results[0];
+                responseObject.result = {
+                    found: true,
+                    restaurantName: data.restaurantsName,
+                    country: data.country,
+                    city: data.city,
+                    address: data.address
+                };
+            }
+            // send OK status and the responseObject
+            return response.status(request.statusCodes.http.Ok).send(responseObject);
+        });
+});
+
+
+router.get('/genersById/:id', (request,response) => {
+    let id = request.params.id;
+
+    // get database pool.
+    let pool = request.db;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    }
+
+    // find user email
+    pool.query(`
+    SELECT gr.id, g.genreName
+    FROM generRestaurant gr
+    LEFT JOIN genres g ON g.id = gr.gener_id
+    WHERE gr.restaurants_id = ?`,
+        [id],
+        (error, results) => {
+            // if an error occured
+            if (error) {
+                // store error message
+                responseObject.result = error;
+                // send client error status and send responseobject
+                return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+            }
+            // if we didn't get any matches
+            if (results.length == 0) {
+                // respond with false password
+                responseObject.result = {
+                    found: false
+                }
+            } else {
+                // Change response to OK.
+                responseObject.response =  request.statusCodes.ok;
+
+                responseObject.result = {
+                    found: true,
+                    geners: []
+                };
+                for(let index in results) {
+                    responseObject.result.geners.push(results[index]);
+                }
             }
             // send OK status and the responseObject
             return response.status(request.statusCodes.http.Ok).send(responseObject);

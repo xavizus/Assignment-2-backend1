@@ -5,11 +5,25 @@
 let URL = `${location.protocol}//${window.location.hostname}${location.port ? `:${location.port}` : ''}`;
 
 $().ready(async () => {
+    // check if token is valid.
     let isTokenValid = await fetch(`${URL}/api/v1/verifyToken`).then(response => response.json());
 
+    // checks if user are authenticated.
+    let authenticated = false;
+    // check if user is admin
+    let isAdmin = false;
+
     if (isTokenValid.response == 'OK') {
+        // Set authenticated to true
+        authenticated = true;
+        
         toggleLoginLogoutButton();
+        if(isTokenValid.result.isAdmin == true) {
+            toggleAdminButton();
+            isAdmin = true;
+        }
     }
+
     // Get password requirements and jsonfy it
     let passwordRequirements = await fetch(`${URL}/api/v1/passwordRequirements`).then(response => response.json());
     // make the passwordComplexity string into a RexExp.
@@ -24,13 +38,30 @@ $().ready(async () => {
         $('.messages').empty();
     });
 
+    // opens a modal when you click on the Reviews Button
     $('.restaurants-cards').on('click', async (event) => {
         if (event.target.classList.contains('reviewButton')) {
-            let id = event.target.dataset.id;
-            let data = await fetch(`${URL}/api/v1/getReviews/${id}`).then(response => response.json());
+            // Clear all previous data
             $('#reviews').empty();
             $('#reviewTitle').empty();
+            $('#userRatings').removeClass('is-invalid is-valid');
+            $('#reviewText').removeClass('is-invalid is-valid');
+
+            // Get id from dataset
+            let id = event.target.dataset.id;
+            // Get data from API.
+            let data = await fetch(`${URL}/api/v1/getReviews/${id}`).then(response => response.json());
+
+            // If user is authenticated, show that the user can post a review.
+            if(authenticated){
+                $('#postReview').removeClass('d-none');
+            }
+            else{
+                $('#postReview').addClass('d-none');
+            }
+            // Add restaurant name
             $('#reviewTitle').text(data.result.restaurantName);
+            // Add all reviews
             for (let review of data.result.reviews) {
                 let html = $('<div class="row"></div>');
                 html.append($('<p></p>').text(review.text));
@@ -50,17 +81,27 @@ $().ready(async () => {
         // Checks validation from HTML5 properties of the input-fields
         if (event.target.checkValidity()) {
             if (event.target.id == "login") {
-                postLogin();
+                let data = await postLogin();
+                authenticated = data.loginSucessfull;
+                if(data.isAdmin == true) {
+                    isAdmin = true;
+                }
             } else if (event.target.id == "newAccount") {
                 newAccount();
             }
         }
     });
 
-    $('.logoutButton').on('click', (event) => {
-        console.log('Clicked');
-        toggleLoginLogoutButton();
-        fetch(`${URL}/api/v1/logout`);
+    $('#navbarNav').on('click', (event) => {
+        if(event.target.classList.contains('logoutButton')) {
+            toggleLoginLogoutButton();
+            if(isAdmin) {
+                toggleAdminButton();
+            }
+            fetch(`${URL}/api/v1/logout`);
+            authenticated = false;
+            isAdmin = false;
+        }
     });
 
     // Get element of id 
@@ -160,6 +201,18 @@ $().ready(async () => {
         }
 
     });
+
+
+    $('#postReview').on('submit', (event) => {
+        let rating = $("#postReview").find('.checked').length;
+        let reviewText = $("#reviewText").val();
+        if(rating == 0) {
+            changeValidation('#userRatings', false);
+        }
+        if(reviewText == "") {
+            changeValidation('#reviewText', false);
+        }
+    });
 });
 /**
  * Changes class 'is-valid' and 'is-invalid' 
@@ -202,8 +255,10 @@ async function newAccount() {
  */
 async function postLogin() {
     let inputFields = $('.needs-validation * :input').not(':input[type=button], :input[type=submit]');
-
     let dataObject = {};
+    let returnObject = {
+        loginSucessfull: false,
+    }
     for (let element of inputFields) {
         dataObject[element.name] = element.value;
     }
@@ -211,7 +266,7 @@ async function postLogin() {
     if (data.response != 'OK') {
         let message = $('<div class="alert alert-danger m-1" role="alert"></div>').text("Error when creating account");
         $('.messages').append(message);
-        return;
+        return returnObject;
     }
     let message = $('<div class="alert alert-success m-1" role="alert"></div>').text("You sucessfully logged in!");
     $('.messages').append(message);
@@ -220,7 +275,13 @@ async function postLogin() {
     $('#loginModal').modal('hide');
 
     toggleLoginLogoutButton();
+    returnObject.loginSucessfull = true;
 
+    if(data.result.isAdmin == true) {
+        toggleAdminButton();
+        returnObject.isAdmin = true;
+    }
+    return returnObject;
 }
 
 /**
@@ -237,6 +298,17 @@ async function postData(url, data) {
         body: JSON.stringify(data)
     }).then(response => response.json());
     return responseData;
+}
+
+function toggleAdminButton() {
+    let adminButton = $('.adminLink');
+    if(adminButton.hasClass('d-none')) {
+        adminButton.removeClass('d-none');
+    }
+    else {
+        adminButton.addClass('d-none');
+
+    }
 }
 
 function toggleLoginLogoutButton() {

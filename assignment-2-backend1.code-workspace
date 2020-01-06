@@ -10,6 +10,7 @@
 			"**/node_modules/**",
 			"**/.git/**",
 			"**/public/javascripts/main.js",
+			"**/public/javascript/admin.js",
 			"**/.gitignore",
 			"package-lock.json",
 			"package.json",

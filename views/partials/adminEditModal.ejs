@@ -1,0 +1,52 @@
+<div class="modal" id="editRestaurantModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <form id="editRestaurantForm" class="needs-validation" method="post" novalidate></form>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <input id="restaurantName" type="text" class="form-control" required>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input id="country" type="text" class="form-control" name="country" required>
+                        <div class="invalid-feedback">
+                            You need to have a country
+                        </div>
+                        <div class="valid-feedback">
+                            Looks good!
+                        </div>
+                        <label for="city">City</label>
+                        <input id="city" type="text" class="form-control" name="city" required>
+                        <div class="invalid-feedback">
+                            You need to have a city
+                        </div>
+                        <div class="valid-feedback">
+                            Looks good!
+                        </div>
+                        <label for="address">Address</label>
+                        <input id="address" type="text" class="form-control" name="address" required>
+                        <div class="invalid-feedback">
+                            You need to have a address
+                        </div>
+                        <div class="valid-feedback">
+                            Looks good!
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="geners">Country</label>
+                        <div id="geners" class="list-group">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Update restaurant</button>
+                    </div>
+            </div>
+        </div>
+    </form>
+    </div>
+</div>

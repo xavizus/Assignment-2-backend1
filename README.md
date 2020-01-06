@@ -8,8 +8,8 @@ Ni får samarbeta med att sätta upp en startuppsättning med restauranger om ni
 # G-krav
 
 - [ ] Vilken användare som helst ska kunna CRUD:a restauranger med ett gränssnitt.
-- [ ] Användare ska kunna skriva recensioner om restaurangerna
-- [ ] Användare ska betygsätta restaurangerna i recensionen på en skala 1-5 (betyget är alltså required)
+- [x] Användare ska kunna skriva recensioner om restaurangerna
+- [x] Användare ska betygsätta restaurangerna i recensionen på en skala 1-5 (betyget är alltså required)
 - [x] Användare måste logga in för att skriva recensioner. Välj mellan JWT eller Passport.
 - [x] Applikationen ska publiceras på heroku eller något liknande.
 
@@ -24,7 +24,7 @@ Ni får samarbeta med att sätta upp en startuppsättning med restauranger om ni
 
 # Gränsfallsfeatures
 
-- [ ] Användarvänligt, användbart, presentabelt, responsivt
-- [ ] Betygsätta genom att klicka på stjärna, typ: ***** <- klicka på en av stjärnorna
+- [x] Användarvänligt, användbart, presentabelt, responsivt
+- [x] Betygsätta genom att klicka på stjärna, typ: ***** <- klicka på en av stjärnorna
 
 Redovisning kommer att ske muntligt torsdag den 9 januari, bokningsschema kommer att komma upp senare. Ni ska även ladda upp en zip-fil med era projekt här.

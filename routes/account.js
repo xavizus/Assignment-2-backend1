@@ -138,7 +138,15 @@ router.post('/login',async (request,response) => {
     response.cookie('token', token, {maxAge: config.jwtexpirySeconds * 1000, httpOnly: true});
     // send response end (because response send isn't used atm).
 
+    // set response to ok.
     responseObject.response = request.statusCodes.ok;
+    //check if role is admin
+    if(userInfo.result.role == "admin") {
+        // add isAdmin to the result.
+        responseObject.result = {
+            isAdmin: true
+        }
+    }
     response.send(responseObject);
 });
 
