@@ -3,8 +3,7 @@
         <form id="deleteRestaurantsForm" class="needs-validation" method="post" novalidate></form>
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <input id="deleteRestaurantName" type="text" class="form-control" required>
+                <h5 class="modal-title" id="deleteRestaurantName">
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -13,8 +12,9 @@
             <div class="modal-body">
                     <p>Are you sure you want to delete this restaurant?</p>
                     <div class="form-group">
-                        <button type="submit" class="btn btn-danger">Delete restaurant</button>
-                        <button type="submit" class="btn btn-primary float-left" data-dismiss="modal" aria-label="Close" >Close</button>
+                        <button type="submit" class="btn btn-primary" data-dismiss="modal" aria-label="Close" >Close</button>
+                        <button id="deleteRestaurant" type="submit" class="btn btn-danger ml-1 float-right" data-id="">Delete restaurant</button>
+
                     </div>
             </div>
         </div>

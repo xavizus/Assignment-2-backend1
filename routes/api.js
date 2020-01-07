@@ -20,6 +20,27 @@ let checkApiToken = (request,response,next) => {
     next();
 }
 
+// Not ideal because of exact repeat of /routes/admin.js code for checking admin.
+let checkIsAdmin = async (request, response, next) => {
+    let token = request.cookies['token'];
+
+    if(!token) {
+        return response.status(request.statusCodes.http.Unauthorized).redirect('/');
+    }
+    let decoded;
+    try {
+        decoded = await jwt.verify(token, request.config.jwtkey);
+    }
+    catch(error) {
+        return response.status(request.statusCodes.http.Unauthorized).redirect('/');
+    }
+
+    if(decoded.role != 'admin') {
+        return response.status(request.statusCodes.http.Unauthorized).redirect('/');
+    }
+    next();
+};
+
 // Root route
 router.get('/', (request, response, next) => {
 
@@ -366,9 +387,9 @@ router.get('/genersById/:id', (request,response) => {
         response: request.statusCodes.error
     }
 
-    // find user email
+    // find gener based of restaurant id
     pool.query(`
-    SELECT gr.id, g.genreName
+    SELECT gr.gener_id, g.genreName
     FROM generRestaurant gr
     LEFT JOIN genres g ON g.id = gr.gener_id
     WHERE gr.restaurants_id = ?`,
@@ -448,6 +469,97 @@ router.get('/allGeners', (request,response) => {
         });
 });
 
+
+router.put('/updateRestaurant/:id', checkIsAdmin, async (request, response) => {
+    let restaurantId = request.params.id;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+
+    if(!Number(restaurantId)) {
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+    }
+    let data = request.body;
+
+    for(let index in data) {
+        if(data[index].length == 0){
+            responseObject.result = {
+                message: "You can't post empty data!"
+            };
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+        }
+    }
+
+    let pool = request.db;
+
+    // Delete geners from restaurant id
+    pool.query(`
+    DELETE FROM generRestaurant
+    WHERE restaurants_id = ?;
+    `, [restaurantId]);
+
+    pool.query(`
+    UPDATE restaurants
+    SET restaurantsName = ?, country = ?, city = ?, address = ?
+    WHERE id = ?
+    `,[data.restaurantName, data.country, data.city, data.address, restaurantId]);
+    let sqlData =[];
+    for(let generId of data.geners) {
+        sqlData.push([Number(generId) ,Number(restaurantId)]) ;
+    }
+    console.log(sqlData);
+    pool.query(`
+    INSERT INTO generRestaurant (
+        gener_id,
+        restaurants_id
+    )
+    VALUES ?
+    `,[sqlData], (error, resutls) => {
+        if(error) {
+            responseObject.error = "SQL-Error!";
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject)
+        }
+        responseObject.response = request.statusCodes.ok;
+        responseObject.result = "Successfully updated restaurant.";
+
+
+        return response.status(request.statusCodes.http.Ok).send(responseObject);
+    });
+
+});
+
+router.delete('/deleteRestaurant/:id', checkIsAdmin, async (request, response) => {
+    let restaurantId = request.params.id;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+
+    if(!Number(restaurantId)) {
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+    }
+
+    let pool = request.db;
+
+    pool.query(`
+    DELETE r, gr,re
+    FROM restaurants r
+    INNER JOIN generRestaurant gr ON gr.restaurants_id = r.id
+    INNER JOIN reviews re ON re.restaurant_id = r.id
+    WHERE r.id = ?;
+    `,[restaurantId], (error, result) => {
+        if(error) {
+            responseObject.error = "SQL-Error!";
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject)
+        }
+
+        responseObject.response = request.statusCodes.ok;
+        responseObject.result = "Successfully removed restaurant.";
+
+        return response.status(request.statusCodes.http.Ok).send(responseObject);
+    })
+});
 
 
 // Get top 10 restaurants

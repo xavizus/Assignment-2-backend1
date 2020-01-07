@@ -16,11 +16,14 @@
         <div class="row">
             <% include ./partials/navbar %>
         </div>
+        <div class="row m-1" id="systemMessages">
+
+        </div>
         <div class="row justify-content-center align-items-center align-items-stretch restaurants-cards">
             <% if(locals.resultObject) { %>
             <% data = resultObject.result %>
             <% for(let i = 0; i < data.length; i++) { %>
-            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-2">
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-2 cardSlot" data-id="<%= data[i].id %>">
                 <div class="card" style="width: 250px;">
                     <img src="<%= data[i].avatar %>" class="card-img-top" alt="...">
                     <div class="card-body">
@@ -33,7 +36,7 @@
                         </address>
                         <button class="btn btn-primary editRestaurant" data-toggle="modal" data-target="#editRestaurantModal"
                             data-id="<%= data[i].id %>">Edit</button>
-                            <button class="btn btn-danger removeRestaurant float-right" data-toggle="modal" data-target="#reviewModal"
+                            <button class="btn btn-danger removeRestaurant float-right" data-toggle="modal" data-target="#deleteRestaurantsModal"
                             data-id="<%= data[i].id %>">Delete</button>
                     </div>
                 </div>
