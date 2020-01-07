@@ -404,6 +404,52 @@ router.get('/genersById/:id', (request,response) => {
         });
 });
 
+router.get('/allGeners', (request,response) => {
+
+    // get database pool.
+    let pool = request.db;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    }
+
+    // find all genres
+    pool.query(`
+    SELECT *
+    FROM genres g`,
+        (error, results) => {
+            // if an error occured
+            if (error) {
+                // store error message
+                responseObject.result = error;
+                // send client error status and send responseobject
+                return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+            }
+            // if we didn't get any matches
+            if (results.length == 0) {
+                // respond with false password
+                responseObject.result = {
+                    found: false
+                }
+            } else {
+                // Change response to OK.
+                responseObject.response =  request.statusCodes.ok;
+
+                responseObject.result = {
+                    found: true,
+                    geners: []
+                };
+                for(let index in results) {
+                    responseObject.result.geners.push(results[index]);
+                }
+            }
+            // send OK status and the responseObject
+            return response.status(request.statusCodes.http.Ok).send(responseObject);
+        });
+});
+
+
+
 // Get top 10 restaurants
 router.get('/top10', (request, response) => {
 

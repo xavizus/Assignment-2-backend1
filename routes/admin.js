@@ -26,9 +26,9 @@ router.use(async (request,response,next) => {
 
 
 router.get('/', async function(request, response, next) {
-
     let resultObject = await fetch(`${request.config.apiurl}`).then(response => response.json());
     resultObject.isAdmin = true;
+    
     response.render('admin', {resultObject});
   });
 
