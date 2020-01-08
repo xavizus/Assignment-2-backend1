@@ -407,7 +407,7 @@ async function postLogin() {
     toggleLoginLogoutButton();
     returnObject.loginSucessfull = true;
 
-    if (data.result.isAdmin == true) {
+    if (data.result.isAdmin != undefined && data.result.isAdmin == true) {
         toggleAdminButton();
         returnObject.isAdmin = true;
     }
