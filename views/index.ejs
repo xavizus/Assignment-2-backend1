@@ -18,7 +18,7 @@
             <% if(locals.resultObject) { %>
             <% data = resultObject.result %>
             <% for(let i = 0; i < data.length; i++) { %>
-            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-2">
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-2 cardSlot" data-id="<%= data[i].id %>">
                 <div class="card" style="width: 250px;">
                     <img src="<%= data[i].avatar %>" class="card-img-top" alt="...">
                     <div class="card-body">
@@ -29,6 +29,15 @@
                             <%= data[i].city %> <br>
                             <%= data[i].address %> <br>
                         </address>
+                        <div class="restaurantRating">
+                            <span class="fa fa-star checked">
+                                <% if(data[i].TotalRating != null ) { %>
+                                    <%= data[i].TotalRating %>
+                                <% } else {%>
+                                    No reviews yet
+                                <% } %>
+                            </span>
+                        </div>
                         <button class="btn btn-primary reviewButton" data-toggle="modal" data-target="#reviewModal"
                             data-id="<%= data[i].id %>">Reviews</button>
                     </div>

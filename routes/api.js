@@ -5,7 +5,7 @@ let router = express.Router();
 const jwt = require('jsonwebtoken');
 
 // Checks server api token.
-let checkApiToken = (request,response,next) => {
+let checkApiToken = (request, response, next) => {
     // Get apiServerToken from request
     let apiServerToken = request.params.apiServerToken;
     // Response object
@@ -24,20 +24,36 @@ let checkApiToken = (request,response,next) => {
 let checkIsAdmin = async (request, response, next) => {
     let token = request.cookies['token'];
 
-    if(!token) {
+    if (!token) {
         return response.status(request.statusCodes.http.Unauthorized).redirect('/');
     }
     let decoded;
     try {
         decoded = await jwt.verify(token, request.config.jwtkey);
-    }
-    catch(error) {
+    } catch (error) {
         return response.status(request.statusCodes.http.Unauthorized).redirect('/');
     }
 
-    if(decoded.role != 'admin') {
+    if (decoded.role != 'admin') {
         return response.status(request.statusCodes.http.Unauthorized).redirect('/');
     }
+    next();
+};
+
+// Not ideal because of exact repeat of /routes/admin.js code for checking admin.
+let checkIsUser = async (request, response, next) => {
+    let token = request.cookies['token'];
+
+    if (!token) {
+        return response.status(request.statusCodes.http.Unauthorized).redirect('/');
+    }
+    let decoded;
+    try {
+        decoded = await jwt.verify(token, request.config.jwtkey);
+    } catch (error) {
+        return response.status(request.statusCodes.http.Unauthorized).redirect('/');
+    }
+    request.userData = decoded;
     next();
 };
 
@@ -51,11 +67,16 @@ router.get('/', (request, response, next) => {
         response: request.statusCodes.ok
     };
     // query all restaurants
-    let sql = `select r.id, r.address, r.city, r.country, r.avatar, r.restaurantsName as restaurantName,GROUP_CONCAT(g.genreName SEPARATOR ', ') as genre
-        FROM restaurants as r
-        LEFT JOIN generRestaurant gr on r.id = gr.restaurants_id
-        LEFT JOIN genres g ON g.id = gr.gener_id
-        group by r.id`;
+    let sql = `SELECT r.id, r.address, r.city, r.country, r.avatar, r.restaurantsName as restaurantName, SUM(re.rating)/count(re.rating) as TotalRating, 
+    (SELECT GROUP_CONCAT(g.genreName SEPARATOR ', ')
+    FROM generRestaurant gr
+    LEFT JOIN genres g ON g.id = gr.gener_id
+    WHERE  gr.restaurants_id = r.id
+    ) as genre
+    FROM restaurants r
+    Left join reviews re ON re.restaurant_id = r.id
+    GROUP By r.id
+    ORDER BY TotalRating DESC `;
     pool.query(sql, (error, results, fields) => {
         // if we got an error
         if (error) {
@@ -67,7 +88,7 @@ router.get('/', (request, response, next) => {
         // set results to the responseObject
         responseObject.result = results
         // send responseObject to client.
-        response.send(responseObject);
+        return response.status(request.statusCodes.http.Ok).send(responseObject);
     });
 });
 
@@ -107,29 +128,32 @@ router.get('/emailExist/:emailToCehck', (request, response) => {
 });
 
 // get reviews
-router.get('/getReviews/:id',(request,response) => {
+router.get('/getReviews/:id', (request, response) => {
     let id = request.params.id;
 
     let responseObject = {
         response: request.statusCodes.error
     };
     // make sure it's an number we are dealing with.
-    if(!Number(id)) {
+    if (!Number(id)) {
         return response.status(request.statusCodes.http.BadRequest).send(responseObject);
     }
 
     let pool = request.db;
 
     pool.query(`
-    SELECT rv.id,rv.user_id, rv.text, rv.rating, r.restaurantsName
-    FROM reviews rv
-    LEFT JOIN restaurants r ON r.id = rv.restaurant_id
-    WHERE rv.restaurant_id = ?;`,[id],(error,results) => {
-        if(error) {
+    SELECT rv.id,rv.user_id, rv.text, rv.rating, r.restaurantsName 
+    FROM restaurants r 
+    LEFT JOIN reviews rv ON r.id = rv.restaurant_id 
+    WHERE r.id = ?;`, [id], (error, results) => {
+        if (error) {
             responseObject.result = error;
             return response.status(request.statusCodes.http.BadRequest).send(responseObject);
         }
-        console.log(results);
+        if (results.length == 0) {
+            responseObject.result = "No object found";
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+        }
         responseObject.response = request.statusCodes.ok
         responseObject.result = {
             reviews: results,
@@ -148,7 +172,7 @@ router.post('/createNewAccount/:apiServerToken', checkApiToken, (request, respon
     } = request.body;
 
     let pool = request.db;
-    
+
     let responseObject = {
         response: request.statusCodes.error
     }
@@ -181,13 +205,18 @@ router.get('/tokenRefresh', (request, response, next) => {
         }
         console.log(decoded);
         let tokenData = decoded.tokenData
-        const token = jwt.sign({tokenData}, request.config.jwtkey, {
+        const token = jwt.sign({
+            tokenData
+        }, request.config.jwtkey, {
             algorithm: 'HS256',
             // expires require data to be number and not string.
             expiresIn: request.config.jwtexpirySeconds
         });
 
-        response.cookie('token', token, {maxAge: request.config.jwtexpirySeconds * 1000, httpOnly: true});
+        response.cookie('token', token, {
+            maxAge: request.config.jwtexpirySeconds * 1000,
+            httpOnly: true
+        });
 
         return response.status(request.statusCodes.http.Ok).send({
             response: request.statusCodes.ok
@@ -195,25 +224,24 @@ router.get('/tokenRefresh', (request, response, next) => {
     });
 });
 
-router.get('/verifyToken', async (request,response) => {
+router.get('/verifyToken', async (request, response) => {
     let token = request.cookies['token'];
 
     let responseObject = {
         response: request.statusCodes.error
     }
-    if(!token) {
+    if (!token) {
         return response.status(request.statusCodes.http.Unauthorized).send(responseObject);
     }
     let decoded;
     try {
         decoded = await jwt.verify(token, request.config.jwtkey);
-    }
-    catch(error) {
+    } catch (error) {
         responseObject.result = error.message;
         return response.status(request.statusCodes.http.Unauthorized).send(responseObject);
     }
     responseObject.response = request.statusCodes.ok;
-    if(decoded.role == 'admin') {
+    if (decoded.role == 'admin') {
         responseObject.result = {
             isAdmin: true
         };
@@ -221,9 +249,13 @@ router.get('/verifyToken', async (request,response) => {
     response.status(200).send(responseObject);
 });
 
-router.get('/logout', (request,response) => {
-    response.cookie('token','', {maxAge: Date.now(0)});
-    response.status(request.statusCodes.http.Ok).send({response: request.statusCodes.ok});
+router.get('/logout', (request, response) => {
+    response.cookie('token', '', {
+        maxAge: Date.now(0)
+    });
+    response.status(request.statusCodes.http.Ok).send({
+        response: request.statusCodes.ok
+    });
 });
 
 // Send password requirements.
@@ -270,7 +302,7 @@ router.get('/getPasswordHash/:apiServerToken/:email', checkApiToken, (request, r
                 }
             } else {
                 // Change response to OK.
-                responseObject.response =  request.statusCodes.ok;
+                responseObject.response = request.statusCodes.ok;
                 // Respond the password hash.
                 responseObject.result = {
                     password: results[0].password
@@ -281,7 +313,7 @@ router.get('/getPasswordHash/:apiServerToken/:email', checkApiToken, (request, r
         });
 });
 
-router.get('/getUserData/:apiServerToken/:email',checkApiToken, (request, response) => {
+router.get('/getUserData/:apiServerToken/:email', checkApiToken, (request, response) => {
     let email = request.params.email;
 
     // get database pool.
@@ -315,7 +347,7 @@ router.get('/getUserData/:apiServerToken/:email',checkApiToken, (request, respon
                 }
             } else {
                 // Change response to OK.
-                responseObject.response =  request.statusCodes.ok;
+                responseObject.response = request.statusCodes.ok;
                 // Respond the password hash.
                 responseObject.result = {
                     found: true,
@@ -328,7 +360,7 @@ router.get('/getUserData/:apiServerToken/:email',checkApiToken, (request, respon
         });
 });
 
-router.get('/restaurantById/:id', (request,response) => {
+router.get('/restaurantById/:id', (request, response) => {
     let id = request.params.id;
 
     // get database pool.
@@ -360,7 +392,7 @@ router.get('/restaurantById/:id', (request,response) => {
                 }
             } else {
                 // Change response to OK.
-                responseObject.response =  request.statusCodes.ok;
+                responseObject.response = request.statusCodes.ok;
 
                 let data = results[0];
                 responseObject.result = {
@@ -377,7 +409,7 @@ router.get('/restaurantById/:id', (request,response) => {
 });
 
 
-router.get('/genersById/:id', (request,response) => {
+router.get('/genersById/:id', (request, response) => {
     let id = request.params.id;
 
     // get database pool.
@@ -410,13 +442,13 @@ router.get('/genersById/:id', (request,response) => {
                 }
             } else {
                 // Change response to OK.
-                responseObject.response =  request.statusCodes.ok;
+                responseObject.response = request.statusCodes.ok;
 
                 responseObject.result = {
                     found: true,
                     geners: []
                 };
-                for(let index in results) {
+                for (let index in results) {
                     responseObject.result.geners.push(results[index]);
                 }
             }
@@ -425,7 +457,7 @@ router.get('/genersById/:id', (request,response) => {
         });
 });
 
-router.get('/allGeners', (request,response) => {
+router.get('/allGeners', (request, response) => {
 
     // get database pool.
     let pool = request.db;
@@ -454,13 +486,13 @@ router.get('/allGeners', (request,response) => {
                 }
             } else {
                 // Change response to OK.
-                responseObject.response =  request.statusCodes.ok;
+                responseObject.response = request.statusCodes.ok;
 
                 responseObject.result = {
                     found: true,
                     geners: []
                 };
-                for(let index in results) {
+                for (let index in results) {
                     responseObject.result.geners.push(results[index]);
                 }
             }
@@ -477,13 +509,13 @@ router.put('/updateRestaurant/:id', checkIsAdmin, async (request, response) => {
         response: request.statusCodes.error
     };
 
-    if(!Number(restaurantId)) {
+    if (!Number(restaurantId)) {
         return response.status(request.statusCodes.http.BadRequest).send(responseObject);
     }
     let data = request.body;
 
-    for(let index in data) {
-        if(data[index].length == 0){
+    for (let index in data) {
+        if (data[index].length == 0) {
             responseObject.result = {
                 message: "You can't post empty data!"
             };
@@ -503,20 +535,21 @@ router.put('/updateRestaurant/:id', checkIsAdmin, async (request, response) => {
     UPDATE restaurants
     SET restaurantsName = ?, country = ?, city = ?, address = ?
     WHERE id = ?
-    `,[data.restaurantName, data.country, data.city, data.address, restaurantId]);
-    let sqlData =[];
-    for(let generId of data.geners) {
-        sqlData.push([Number(generId) ,Number(restaurantId)]) ;
+    `, [data.restaurantName, data.country, data.city, data.address, restaurantId]);
+    let sqlData = [];
+    for (let generId of data.geners) {
+        sqlData.push([Number(generId), Number(restaurantId)]);
     }
-    console.log(sqlData);
+
+
     pool.query(`
     INSERT INTO generRestaurant (
         gener_id,
         restaurants_id
     )
     VALUES ?
-    `,[sqlData], (error, resutls) => {
-        if(error) {
+    `, [sqlData], (error, resutls) => {
+        if (error) {
             responseObject.error = "SQL-Error!";
             return response.status(request.statusCodes.http.BadRequest).send(responseObject)
         }
@@ -536,7 +569,7 @@ router.delete('/deleteRestaurant/:id', checkIsAdmin, async (request, response) =
         response: request.statusCodes.error
     };
 
-    if(!Number(restaurantId)) {
+    if (!Number(restaurantId)) {
         return response.status(request.statusCodes.http.BadRequest).send(responseObject);
     }
 
@@ -545,15 +578,15 @@ router.delete('/deleteRestaurant/:id', checkIsAdmin, async (request, response) =
     pool.query(`
     DELETE r, gr,re
     FROM restaurants r
-    INNER JOIN generRestaurant gr ON gr.restaurants_id = r.id
-    INNER JOIN reviews re ON re.restaurant_id = r.id
+    left JOIN generRestaurant gr ON gr.restaurants_id = r.id
+    left JOIN reviews re ON re.restaurant_id = r.id
     WHERE r.id = ?;
-    `,[restaurantId], (error, result) => {
-        if(error) {
+    `, [restaurantId], (error, result) => {
+        if (error) {
             responseObject.error = "SQL-Error!";
             return response.status(request.statusCodes.http.BadRequest).send(responseObject)
         }
-
+        console.log(result);
         responseObject.response = request.statusCodes.ok;
         responseObject.result = "Successfully removed restaurant.";
 
@@ -562,8 +595,175 @@ router.delete('/deleteRestaurant/:id', checkIsAdmin, async (request, response) =
 });
 
 
+router.post('/addRestaurant', checkIsAdmin, async (request, response) => {
+
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+
+    let data = request.body;
+
+    for (let index in data) {
+        if (data[index].length == 0) {
+            responseObject.result = {
+                message: "You can't post empty data!"
+            };
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+        }
+    }
+
+    let pool = request.db;
+
+    pool.query(`
+    INSERT INTO restaurants (restaurantsName,country,city,address,avatar)
+    VALUES (?, ?, ?, ?, ?);
+    `, [data.addRestaurantName2, data.addCountry2, data.addCity2, data.addAddress2,'/images/default_avatar.png'],
+        (error, result) => {
+            if (error) {
+                responseObject.error = "SQL-Error!";
+                responseObject.errorMessage = error;
+                return response.status(request.statusCodes.http.BadRequest).send(responseObject)
+            }
+
+            let restaurantId = result.insertId;
+
+            let sqlData = [];
+            for (let generId of data.geners) {
+                sqlData.push([Number(generId), Number(restaurantId)]);
+            }
+
+            pool.query(`
+                INSERT INTO generRestaurant (
+                gener_id,
+                restaurants_id
+                )
+                VALUES ?
+                `, [sqlData], (error, resutls) => {
+                if (error) {
+                    responseObject.error = "SQL-Error!";
+                    responseObject.errorMessage = error;
+                    return response.status(request.statusCodes.http.BadRequest).send(responseObject)
+                }
+                responseObject.response = request.statusCodes.ok;
+                responseObject.result = "Successfully added restaurant.";
+                return response.status(request.statusCodes.http.Ok).send(responseObject);
+            });
+
+        });
+});
+
+// Post user rating
+router.post('/postRating/:restaurantId', checkIsUser, (request, response) => {
+    let restaurantId = request.params.restaurantId;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+
+    if (!Number(restaurantId)) {
+        return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+    }
+
+    let data = request.body;
+
+    for (let index in data) {
+        if (data[index].length == 0) {
+            responseObject.result = {
+                message: "You can't post empty data!"
+            };
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject);
+        }
+    }
+
+    let pool = request.db;
+
+    pool.query(`
+    INSERT INTO reviews
+    (text, user_id,restaurant_id,rating)
+    VALUES (?, ?, ?, ?)
+    `, [data.reviewText, request.userData.id, Number(restaurantId), data.rating], (error, result) => {
+        if (error) {
+            responseObject.error = "SQL-Error!";
+            responseObject.errorMessage = error;
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject)
+        }
+        responseObject.response = request.statusCodes.ok;
+        responseObject.result = "Successfully added review.";
+        return response.status(request.statusCodes.http.Ok).send(responseObject);
+    })
+});
+
 // Get top 10 restaurants
 router.get('/top10', (request, response) => {
+
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+
+    let pool = request.db;
+    pool.query(`
+    SELECT r.id, r.address, r.city, r.country, r.avatar, r.restaurantsName as restaurantName, SUM(re.rating)/count(re.rating) as TotalRating, 
+    (SELECT GROUP_CONCAT(g.genreName SEPARATOR ', ')
+    FROM generRestaurant gr
+    LEFT JOIN genres g ON g.id = gr.gener_id
+    WHERE  gr.restaurants_id = r.id
+    ) as genre
+    FROM restaurants r
+    Left join reviews re ON re.restaurant_id = r.id
+    GROUP By r.id
+    ORDER BY TotalRating DESC 
+    LIMIT 10;
+    `, (error, result) => {
+        if (error) {
+            responseObject.error = "SQL-Error!";
+            responseObject.errorMessage = error;
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject)
+        }
+        responseObject.response = request.statusCodes.ok;
+        // set results to the responseObject
+        responseObject.result = result
+        // send responseObject to client.
+        return response.status(request.statusCodes.http.Ok).send(responseObject);
+
+    });
+
+});
+
+router.get('/restaurantsByGener/:id', (request, response) => {
+    let generId = request.params.id;
+
+    let responseObject = {
+        response: request.statusCodes.error
+    };
+
+    let pool = request.db;
+
+    pool.query(`
+    SELECT r.id, r.address, r.city, r.country, r.avatar, r.restaurantsName as restaurantName, SUM(re.rating)/count(re.rating) as TotalRating, 
+    (SELECT GROUP_CONCAT(g.genreName SEPARATOR ', ')
+    FROM generRestaurant gr
+    LEFT JOIN genres g ON g.id = gr.gener_id
+    WHERE  gr.restaurants_id = r.id
+    ) as genre
+    FROM generRestaurant gr
+    LEFT join reviews re ON re.restaurant_id = gr.restaurants_id
+    LEFT JOIN restaurants r ON r.id = gr.restaurants_id
+    WHERE gr.gener_id = ?
+    GROUP By r.id
+    `,[generId], (error,result) => {
+        if (error) {
+            responseObject.error = "SQL-Error!";
+            responseObject.errorMessage = error;
+            return response.status(request.statusCodes.http.BadRequest).send(responseObject)
+        }
+
+        responseObject.response = request.statusCodes.ok;
+        // set results to the responseObject
+        responseObject.result = result
+        // send responseObject to client.
+        return response.status(request.statusCodes.http.Ok).send(responseObject);
+
+    });
 
 });
 

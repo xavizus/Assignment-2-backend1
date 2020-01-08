@@ -5,12 +5,11 @@
 let URL = `${location.protocol}//${window.location.hostname}${location.port ? `:${location.port}` : ''}`;
 
 $().ready(() => {
-    //Ugly solution to add "add Restaurant button" to admin-view.
+    //Ugly solution to add "add Restaurant button" to admin-view in navbar.
     let listItem = $(' <li class="nav-item"> </li>');
-    let button = $('<button class="btn btn-primary mr-1" data-toggle="modal" data-target="#addRestaurantsModal"></button')
+    let button = $('<button class="btn btn-primary mr-1 addRestaurant" data-toggle="modal" data-target="#addRestaurantsModal"></button')
     .text('Add restaurant');
     listItem.append(button);
-
     listItem.insertAfter('.adminLink');
 
     $('.restaurants-cards').on('click', async (event) => {
@@ -59,7 +58,7 @@ $().ready(() => {
             responseData = await fetch(`${URL}/api/v1/allGeners`).then(response => response.json());
 
             if (responseData.result.found == false) {
-                console.log("No data");
+                console.log("No data found");
                 return;
             }
 
@@ -186,9 +185,100 @@ $().ready(() => {
 
             let sucessfullMessage = $('<div class="alert alert-success" role="alert"></div>')
             .text(responseData.result);
+            messages.append(sucessfullMessage);
+        }
+    });
 
-            console.log(sucessfullMessage);
-            console.log(messages);
+
+    $('#addRestaurantsModal').on('show.bs.modal', async (event) => {
+
+        let inputs = ['restaurantName2', 'addCountry2', 'addCity2', 'addAddress2', 'geners2', 'generToAdd2'];
+            for (let input of inputs) {
+                $(`#${input}`).empty();
+                $(`#${input}`).val('');
+                $(`#${input}`).removeClass('is-invalid is-valid');
+            }
+
+        let responseData = await fetch(`${URL}/api/v1/allGeners`).then(response => response.json());
+        
+        let allGeners = responseData.result.geners;
+        // sort allGeners
+        allGeners.sort((a, b) => (a.genreName.toUpperCase() > b.genreName.toUpperCase()) ? 1 : -1);
+            
+        // Create select element
+        let selectList = $('<select id="selectGenerToAdd2" class="form-control"></select>');
+
+        // Loop through all geners and show the geners that's not maches the current
+        // geners that the restaurant already got.
+        for (let gener of allGeners) {
+                let option = $('<option/>')
+                    .text(gener.genreName)
+                    .attr('data-id', gener.id);
+                selectList.append(option);
+        }
+        $('#generToAdd2').append(selectList);
+
+    });
+
+    // Handles click events on add restaurants modal
+    $('#addRestaurantsModal').on('click', async (event) => {
+
+        // adds selected gener to geners.
+        if (event.target.id == 'addGener2') {
+            let id = $('#generToAdd2 option:selected').data('id');
+            let text = $('#generToAdd2 option:selected').text();
+            $('#generToAdd2 option:selected').remove();
+
+            let newElement = $(`<li class="list-group-item" data-id="${id}"></li>`)
+                .text(text)
+                .append(`<i class="material-icons float-right mr-1 pointer deleteGener" data-id="${id}">delete</i>`);
+
+            $('#geners2').append(newElement);
+        }
+
+        // removes a gener from geners list and add it to add gener select list
+        else if (event.target.classList.contains('deleteGener')) {
+            let id = $(event.target).data('id');
+            let text = $(event.target).parent().text();
+            $(event.target).parent().remove();
+            text = text.substring(0,text.indexOf('delete'));
+            let option = $('<option/>')
+                        .text(text)
+                        .attr('data-id', id);
+            $('#selectGenerToAdd2').append(option);
+        }
+
+        // Post data on submit.
+        else if (event.target.type == 'submit') {
+            let dataObject = {};
+
+            let objectsToGetDataFrom = ['addRestaurantName2', 'addCountry2', 'addCity2', 'addAddress2', 'geners2'];
+
+            for (let object of objectsToGetDataFrom) {
+                if (object == 'geners2') {
+                    dataObject.geners = [];
+                    let genersToAdd = $(`#${object} li`);
+                    for (let gener of genersToAdd) {
+                        dataObject.geners.push($(gener).data('id'));
+                    }
+                } else {
+                    dataObject[object] = $(`#${object}`).val();
+                }
+            }
+            let restaurant_id = $('#editRestaurantForm').attr('data-restaurantId');
+
+            let responseData = await sendData (`${URL}/api/v1/addRestaurant`, 'POST', dataObject);
+            let messages = $('.updateMessages');
+            if(responseData.response == "ERROR") {
+                let errorMessage = $('<div class="alert alert-danger" role="alert"></div>')
+                .text(responseData.error);
+
+                messages.append(errorMessage);
+                return;
+            }
+
+            let sucessfullMessage = $('<div class="alert alert-success" role="alert"></div>')
+            .text(responseData.result);
             messages.append(sucessfullMessage);
         }
     });

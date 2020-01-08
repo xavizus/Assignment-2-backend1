@@ -1,3 +1,5 @@
+import fetch from "node-fetch";
+
 // Create apiURL
 // First get protocol, then get hostname, 
 // then check if there is a port. if it exists, add colon and portnumber
@@ -16,9 +18,9 @@ $().ready(async () => {
     if (isTokenValid.response == 'OK') {
         // Set authenticated to true
         authenticated = true;
-        
+
         toggleLoginLogoutButton();
-        if(isTokenValid.result.isAdmin == true) {
+        if (isTokenValid.result.isAdmin == true) {
             toggleAdminButton();
             isAdmin = true;
         }
@@ -28,6 +30,97 @@ $().ready(async () => {
     let passwordRequirements = await fetch(`${URL}/api/v1/passwordRequirements`).then(response => response.json());
     // make the passwordComplexity string into a RexExp.
     passwordRequirements.passwordComplexity = new RegExp(passwordRequirements.passwordComplexity, 'g');
+
+    // When you click on geners dropdown.
+    $('#dropdownGener').on('click', async (event) => {
+
+        // Checks if div is empty.
+        if ($.trim($('#dropdownMenuGener').html()) == '') {
+
+            let data = await fetch(`${URL}/api/v1/allGeners`).then(response => response.json());
+            for (let gener of data.result.geners) {
+                let newElement = $('<a class="dropdown-item pointer"></a>')
+                    .attr('data-id', gener.id)
+                    .text(gener.genreName);
+
+                $('#dropdownMenuGener').append(newElement);
+            }
+        }
+
+    });
+
+    // When you click on any geners in dropdown.
+    $('#dropdownMenuGener').on('click', async (event) => {
+
+        // Check that the dataset is set.
+        if (!isNaN(event.target.dataset.id)) {
+            let data = await fetch(`${URL}/api/v1/restaurantsByGener/${event.target.dataset.id}`).then(response => response.json());
+
+            // Clear previous data
+            $('.restaurants-cards').empty();
+
+            // if the total we got is 0.
+            if (data.result.length == 0) {
+                $('.restaurants-cards').append(`<h1></h1>`).text(`No restaurants found!`);
+            }
+
+            for (let restaurant of data.result) {
+
+                let cardSlot = $('<div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-2 cardSlot">').attr('data-id',
+                    restaurant.id);
+                let img = $(`<img src="" class="card-img-top" alt="...">`).attr('src', restaurant.avatar);
+                let cardBody = $(`<div class="card-body"></div>`);
+                let h5 = $(`<h5 class="card-title"></h5>`).append(restaurant.restaurantName);
+                let h6 = $(`<h6 class="card-subtitle mb-2 text-muted"></h6>`).append(restaurant.genre);
+                let address = $('<address></address>').append(`${restaurant.country} <br> ${restaurant.city} <br> ${restaurant.address} <br>`);
+                let restaurantRating = $('<div class="restaurantRating"></div>')
+                    .append(`<span class="fa fa-star checked">
+                    ${restaurant.TotalRating ?  restaurant.TotalRating : 'No reviews yet'}</span>`);
+                let reviewButton = $(`<button class="btn btn-primary reviewButton" data-toggle="modal" data-target="#reviewModal"
+                     data-id="<%= data[i].id %>"></button>`)
+                    .text('Reviews')
+                    .attr('data-id', restaurant.id);
+                cardBody.append(h5, h6, address, restaurantRating, reviewButton);
+                cardSlot.append(img, cardBody);
+
+                $('.restaurants-cards').append(cardSlot);
+            }
+        }
+    });
+
+    $('#getTop10').on('click', async (event) => {
+        let data = await fetch(`${URL}/api/v1/top10`).then(response => response.json());
+
+        // Clear previous data
+        $('.restaurants-cards').empty();
+
+        // if the total we got is 0.
+        if (data.result.length == 0) {
+            $('.restaurants-cards').append(`<h1></h1>`).text(`No restaurants found!`);
+        }
+
+        for (let restaurant of data.result) {
+
+            let cardSlot = $('<div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-2 cardSlot">').attr('data-id',
+                restaurant.id);
+            let img = $(`<img src="" class="card-img-top" alt="...">`).attr('src', restaurant.avatar);
+            let cardBody = $(`<div class="card-body"></div>`);
+            let h5 = $(`<h5 class="card-title"></h5>`).append(restaurant.restaurantName);
+            let h6 = $(`<h6 class="card-subtitle mb-2 text-muted"></h6>`).append(restaurant.genre);
+            let address = $('<address></address>').append(`${restaurant.country} <br> ${restaurant.city} <br> ${restaurant.address} <br>`);
+            let restaurantRating = $('<div class="restaurantRating"></div>')
+                .append(`<span class="fa fa-star checked">
+                    ${restaurant.TotalRating ?  restaurant.TotalRating : 'No reviews yet'}</span>`);
+            let reviewButton = $(`<button class="btn btn-primary reviewButton" data-toggle="modal" data-target="#reviewModal"
+                     data-id="<%= data[i].id %>"></button>`)
+                .text('Reviews')
+                .attr('data-id', restaurant.id);
+            cardBody.append(h5, h6, address, restaurantRating, reviewButton);
+            cardSlot.append(img, cardBody);
+
+            $('.restaurants-cards').append(cardSlot);
+        }
+    })
 
     // fixes an login modal, so when you press the login button, an login modal pops upp.
     $('#loginModal').on('shown.bs.modal', function () {
@@ -49,22 +142,34 @@ $().ready(async () => {
 
             // Get id from dataset
             let id = event.target.dataset.id;
+
+            // Set id to add Review button:
+            $('#addReview').attr('data-id', id);
             // Get data from API.
             let data = await fetch(`${URL}/api/v1/getReviews/${id}`).then(response => response.json());
-
-            // If user is authenticated, show that the user can post a review.
-            if(authenticated){
-                $('#postReview').removeClass('d-none');
+            if (data.response == "ERROR") {
+                return;
             }
-            else{
+            // If user is authenticated, show that the user can post a review.
+            if (authenticated) {
+                $('#postReview').removeClass('d-none');
+            } else {
                 $('#postReview').addClass('d-none');
             }
+
             // Add restaurant name
             $('#reviewTitle').text(data.result.restaurantName);
+
+            // Make sure we don't have empty data.
+            if (data.result.reviews[0].id == null) {
+                return;
+            }
+
             // Add all reviews
             for (let review of data.result.reviews) {
-                let html = $('<div class="row"></div>');
-                html.append($('<p></p>').text(review.text));
+                let html = $('<li class="list-group-item d-flex justify-content-between align-items-center"></li>');
+                html.text(review.text);
+                html.append(`<span class="badge badge-primary badge-pill">${review.rating}/5</span>`);
 
                 $('#reviews').append(html);
             }
@@ -83,7 +188,7 @@ $().ready(async () => {
             if (event.target.id == "login") {
                 let data = await postLogin();
                 authenticated = data.loginSucessfull;
-                if(data.isAdmin == true) {
+                if (data.isAdmin == true) {
                     isAdmin = true;
                 }
             } else if (event.target.id == "newAccount") {
@@ -93,9 +198,9 @@ $().ready(async () => {
     });
 
     $('#navbarNav').on('click', (event) => {
-        if(event.target.classList.contains('logoutButton')) {
+        if (event.target.classList.contains('logoutButton')) {
             toggleLoginLogoutButton();
-            if(isAdmin) {
+            if (isAdmin) {
                 toggleAdminButton();
             }
             fetch(`${URL}/api/v1/logout`);
@@ -203,15 +308,40 @@ $().ready(async () => {
     });
 
 
-    $('#postReview').on('submit', (event) => {
+    $('#postReview').on('submit', async (event) => {
         let rating = $("#postReview").find('.checked').length;
         let reviewText = $("#reviewText").val();
-        if(rating == 0) {
+        let id = $('#addReview').data('id')
+        if (rating == 0) {
             changeValidation('#userRatings', false);
+        } else {
+            changeValidation('#userRatings', true);
         }
-        if(reviewText == "") {
+        if (reviewText == "") {
             changeValidation('#reviewText', false);
+        } else {
+            changeValidation('#reviewText', true);
         }
+
+        if (!($('#userRatings.is-valid').length &&
+                $('#reviewText.is-valid').length)) {
+            return;
+        }
+        let data = {
+            rating: Number(rating),
+            reviewText: reviewText
+        }
+
+        let responseData = await postData(`${URL}/api/v1/postRating/${id}`, data);
+        if (responseData.response == "ERROR") {
+            return;
+        }
+
+        let html = $('<li class="list-group-item d-flex justify-content-between align-items-center"></li>');
+        html.text(reviewText);
+        html.append(`<span class="badge badge-primary badge-pill">${rating}/5</span>`);
+
+        $('#reviews').append(html);
     });
 });
 /**
@@ -277,7 +407,7 @@ async function postLogin() {
     toggleLoginLogoutButton();
     returnObject.loginSucessfull = true;
 
-    if(data.result.isAdmin == true) {
+    if (data.result.isAdmin == true) {
         toggleAdminButton();
         returnObject.isAdmin = true;
     }
@@ -302,10 +432,9 @@ async function postData(url, data) {
 
 function toggleAdminButton() {
     let adminButton = $('.adminLink');
-    if(adminButton.hasClass('d-none')) {
+    if (adminButton.hasClass('d-none')) {
         adminButton.removeClass('d-none');
-    }
-    else {
+    } else {
         adminButton.addClass('d-none');
 
     }
