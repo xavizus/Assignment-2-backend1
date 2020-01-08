@@ -660,6 +660,203 @@
                     "filename": "webpack.config.js"
                 }
             ]
+        },
+        {
+            "version": "0.1.7",
+            "counttime": "2020-01-08 16:36:25",
+            "filesum": 31,
+            "codesum": 2197,
+            "commentsum": 455,
+            "blanksum": 367,
+            "filelist": [
+                {
+                    "blank": 4,
+                    "code": 29,
+                    "comment": 1,
+                    "filename": ".env"
+                },
+                {
+                    "blank": 4,
+                    "code": 29,
+                    "comment": 0,
+                    "filename": ".env-sample"
+                },
+                {
+                    "blank": 12,
+                    "code": 60,
+                    "comment": 20,
+                    "filename": "app.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 19,
+                    "comment": 0,
+                    "filename": "assignment-2-backend1.code-workspace"
+                },
+                {
+                    "blank": 5,
+                    "code": 48,
+                    "comment": 7,
+                    "filename": "config.js"
+                },
+                {
+                    "filename": "public\\images\\default_avatar.png",
+                    "isbinaryfile": true,
+                    "blank": 0,
+                    "code": 0,
+                    "comment": 0
+                },
+                {
+                    "blank": 10,
+                    "code": 73,
+                    "comment": 99,
+                    "filename": "public\\javascripts\\admin.js"
+                },
+                {
+                    "blank": 14,
+                    "code": 77,
+                    "comment": 104,
+                    "filename": "public\\javascripts\\app.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 20,
+                    "comment": 0,
+                    "filename": "public\\stylesheets\\style.css"
+                },
+                {
+                    "blank": 9,
+                    "code": 29,
+                    "comment": 0,
+                    "filename": "README.md"
+                },
+                {
+                    "blank": 23,
+                    "code": 102,
+                    "comment": 28,
+                    "filename": "routes\\account.js"
+                },
+                {
+                    "blank": 7,
+                    "code": 27,
+                    "comment": 1,
+                    "filename": "routes\\admin.js"
+                },
+                {
+                    "blank": 104,
+                    "code": 585,
+                    "comment": 81,
+                    "filename": "routes\\api.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 8,
+                    "comment": 1,
+                    "filename": "routes\\index.js"
+                },
+                {
+                    "blank": 64,
+                    "code": 202,
+                    "comment": 38,
+                    "filename": "src\\javascript\\admin.js"
+                },
+                {
+                    "blank": 64,
+                    "code": 318,
+                    "comment": 72,
+                    "filename": "src\\javascript\\main.js"
+                },
+                {
+                    "blank": 7,
+                    "code": 36,
+                    "comment": 3,
+                    "filename": "src\\javascript\\rateings.js"
+                },
+                {
+                    "blank": 0,
+                    "code": 18,
+                    "comment": 0,
+                    "filename": "statusCodes.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 46,
+                    "comment": 0,
+                    "filename": "views\\admin.ejs"
+                },
+                {
+                    "blank": 1,
+                    "code": 29,
+                    "comment": 0,
+                    "filename": "views\\data.ejs"
+                },
+                {
+                    "blank": 4,
+                    "code": 49,
+                    "comment": 0,
+                    "filename": "views\\index.ejs"
+                },
+                {
+                    "blank": 8,
+                    "code": 50,
+                    "comment": 0,
+                    "filename": "views\\login.ejs"
+                },
+                {
+                    "blank": 4,
+                    "code": 61,
+                    "comment": 0,
+                    "filename": "views\\newAccount.ejs"
+                },
+                {
+                    "blank": 2,
+                    "code": 57,
+                    "comment": 0,
+                    "filename": "views\\partials\\adminAddModal.ejs"
+                },
+                {
+                    "blank": 1,
+                    "code": 22,
+                    "comment": 0,
+                    "filename": "views\\partials\\adminDeleteModal.ejs"
+                },
+                {
+                    "blank": 2,
+                    "code": 57,
+                    "comment": 0,
+                    "filename": "views\\partials\\adminEditModal.ejs"
+                },
+                {
+                    "blank": 0,
+                    "code": 15,
+                    "comment": 0,
+                    "filename": "views\\partials\\header.ejs"
+                },
+                {
+                    "blank": 0,
+                    "code": 47,
+                    "comment": 0,
+                    "filename": "views\\partials\\login.ejs"
+                },
+                {
+                    "blank": 0,
+                    "code": 24,
+                    "comment": 0,
+                    "filename": "views\\partials\\navbar.ejs"
+                },
+                {
+                    "blank": 0,
+                    "code": 45,
+                    "comment": 0,
+                    "filename": "views\\partials\\reviewsModal.ejs"
+                },
+                {
+                    "blank": 2,
+                    "code": 15,
+                    "comment": 0,
+                    "filename": "webpack.config.js"
+                }
+            ]
         }
     ]
 }
