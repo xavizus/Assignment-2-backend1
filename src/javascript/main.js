@@ -20,7 +20,7 @@ $().ready(async () => {
         authenticated = true;
 
         toggleLoginLogoutButton();
-        if (isTokenValid.result.isAdmin == true) {
+        if (isTokenValid.result.isAdmin != undefined && isTokenValid.result.isAdmin == true) {
             toggleAdminButton();
             isAdmin = true;
         }
