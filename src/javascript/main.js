@@ -311,7 +311,7 @@ $().ready(async () => {
     $('#postReview').on('submit', async (event) => {
         let rating = $("#postReview").find('.checked').length;
         let reviewText = $("#reviewText").val();
-        let id = $('#addReview').data('id')
+        let id = $('#addReview').attr('data-id');
         if (rating == 0) {
             changeValidation('#userRatings', false);
         } else {
